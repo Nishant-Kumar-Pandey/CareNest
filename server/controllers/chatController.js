@@ -85,11 +85,37 @@ exports.sendMessage = async (req, res) => {
     const io = require('../socket').getIO();
     io.to(bookingId).emit('receive_message', message);
     
-    // Notify participants
+    // Notify participants (In-app + Socket)
     const patientUserId = booking.patient?.user?._id || booking.patient?.user;
     const caregiverUserId = booking.caregiver?.user?._id || booking.caregiver?.user;
+    
+    const recipientId = isPatient ? caregiverUserId : patientUserId;
+    
     if (patientUserId) io.to(patientUserId.toString()).emit('new_chat_message', message);
     if (caregiverUserId) io.to(caregiverUserId.toString()).emit('new_chat_message', message);
+
+    // ── EMAIL NOTIFICATION LOGIC ──
+    try {
+      const { sendNotification } = require('../utils/notifications');
+      const templates = require('../utils/emailTemplates');
+      const User = require('../models/User');
+      
+      const recipient = await User.findById(recipientId);
+      const senderName = req.user.name || 'A user';
+
+      if (recipient) {
+        await sendNotification(recipient._id, {
+          title: `New Message from ${senderName}`,
+          message: text ? (text.substring(0, 50) + (text.length > 50 ? '...' : '')) : 'Sent an attachment',
+          type: 'CHAT_MESSAGE',
+          priority: 'medium',
+          emailSubject: `New Message on CareNest from ${senderName}`,
+          emailHtml: templates.newMessageEmail(recipient.name, senderName, text ? text.substring(0, 100) : 'Sent an attachment')
+        });
+      }
+    } catch (notifErr) {
+      console.error('Chat notification failed:', notifErr.message);
+    }
 
     res.status(201).json({ success: true, data: message });
 

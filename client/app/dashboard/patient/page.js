@@ -281,8 +281,12 @@ export default function PatientDashboard() {
             }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-4)' }}>
-                  <div className="avatar" style={{ width: 48, height: 48 }}>
-                    {booking.caregiver?.user?.name.charAt(0) || 'C'}
+                  <div className="avatar" style={{ 
+                    width: 48, height: 48,
+                    backgroundImage: booking.caregiver?.user?.avatar ? `url(${booking.caregiver.user.avatar})` : 'none',
+                    backgroundSize: 'cover', backgroundPosition: 'center'
+                  }}>
+                    {!booking.caregiver?.user?.avatar && (booking.caregiver?.user?.name.charAt(0) || 'C')}
                   </div>
                   <div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>

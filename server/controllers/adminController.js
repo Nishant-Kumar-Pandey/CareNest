@@ -3,6 +3,7 @@ const Patient = require('../models/Patient');
 const User = require('../models/User');
 const Booking = require('../models/Booking');
 const sendEmail = require('../utils/sendEmail');
+const templates = require('../utils/emailTemplates');
 const { getCache, setCache } = require('../config/redis');
 
 // @desc   Get all pending caregivers for admin review
@@ -44,17 +45,7 @@ exports.verifyCaregiver = async (req, res) => {
       type: 'VETTING_UPDATE',
       priority: 'high',
       emailSubject: 'Profile Verified! Welcome to the CareNest Team',
-      emailHtml: `
-        <div style="font-family: sans-serif; padding: 20px; color: #333;">
-          <h1 style="color: #4D8452;">Congratulations, ${caregiver.user.name}!</h1>
-          <p>Your professional caregiver profile has been reviewed and **fully verified** by our admin team.</p>
-          <p>You are now visible in our public directory and can begin receiving booking requests from families.</p>
-          <div style="margin-top: 30px; border-top: 1px solid #eee; padding-top: 20px;">
-            <p>Next steps: Ensure your hourly rate and availability are up to date in your dashboard.</p>
-            <a href="${process.env.CLIENT_URL || 'http://localhost:3000'}/dashboard/caregiver" style="background: #C4694E; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; display: inline-block;">Go to Dashboard</a>
-          </div>
-        </div>
-      `
+      emailHtml: templates.vettingStatusEmail(caregiver.user.name, 'approved', 'Your professional caregiver profile has been reviewed and fully verified by our admin team. You are now visible in our public directory and can begin receiving booking requests from families.')
     });
 
     res.json({ success: true, data: caregiver });
@@ -82,15 +73,7 @@ exports.rejectCaregiver = async (req, res) => {
       await sendEmail({
         to: email,
         subject: 'Update regarding your CareNest Application',
-        html: `
-          <div style="font-family: sans-serif; padding: 20px; color: #333;">
-            <h2 style="color: #C4694E;">Application Status: Update</h2>
-            <p>Hello ${name},</p>
-            <p>Thank you for your interest in joining CareNest. After reviewing your profile and submitted credentials, we are unable to approve your application at this time.</p>
-            <p>This decision is often based on incomplete documentation or specific certification requirements. You are welcome to re-apply in the future with updated credentials.</p>
-            <p>Regards,<br/>The CareNest Quality Team</p>
-          </div>
-        `
+        html: templates.vettingStatusEmail(name, 'rejected', 'Thank you for your interest in joining CareNest. After reviewing your profile and submitted credentials, we are unable to approve your application at this time. This decision is often based on incomplete documentation or specific certification requirements. You are welcome to re-apply in the future with updated credentials.')
       });
     } catch (emailErr) {
       console.error('Rejection email failed:', emailErr.message);

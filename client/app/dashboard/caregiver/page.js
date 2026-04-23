@@ -11,6 +11,8 @@ export default function CaregiverDashboard() {
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('pending');
+  const [reviews, setReviews] = useState([]);
+  const [caregiverProfile, setCaregiverProfile] = useState(null);
   const [submittingAction, setSubmittingAction] = useState({ id: null, action: null });
   
   // Care Note Modal State
@@ -64,6 +66,14 @@ export default function CaregiverDashboard() {
       setLoading(true);
       const res = await api.bookings.list();
       setBookings(res.data);
+      
+      // Fetch reviews too
+      const profileRes = await api.caregivers.me();
+      if (profileRes.data) {
+        setCaregiverProfile(profileRes.data);
+        const reviewsRes = await api.reviews.byCaregiverId(profileRes.data._id);
+        setReviews(reviewsRes.data);
+      }
     } catch (err) {
       const msg = err.message || '';
       if (msg.includes('SetupRequired')) {
@@ -119,6 +129,20 @@ export default function CaregiverDashboard() {
   const pending = bookings.filter(b => b.status === 'pending');
   const active = bookings.filter(b => b.status === 'confirmed' || b.status === 'in_progress' || b.status === 'awaiting_payment');
   const past = bookings.filter(b => b.status === 'completed' || b.status === 'cancelled');
+
+  const handleRespondToReview = async (reviewId, response) => {
+    if (!response.trim()) return toast.error('Response cannot be empty');
+    try {
+      setSubmittingAction({ id: reviewId, action: 'responding' });
+      await api.reviews.respond(reviewId, response);
+      toast.success('Response posted!');
+      fetchBookings();
+    } catch (err) {
+      toast.error(err.message);
+    } finally {
+      setSubmittingAction({ id: null, action: null });
+    }
+  };
 
   const getActiveList = () => {
     if (activeTab === 'pending') return pending;
@@ -178,7 +202,7 @@ export default function CaregiverDashboard() {
 
       {/* TABS */}
       <div style={{ display: 'flex', gap: 'var(--space-4)', borderBottom: '1px solid var(--border)', marginBottom: 'var(--space-8)' }}>
-        {['pending', 'active', 'past'].map(tab => (
+        {['pending', 'active', 'past', 'reviews'].map(tab => (
           <button
             key={tab}
             onClick={() => setActiveTab(tab)}
@@ -195,7 +219,7 @@ export default function CaregiverDashboard() {
               transition: 'var(--transition)'
             }}
           >
-            {tab} Sessions
+            {tab} {tab === 'reviews' ? '' : 'Sessions'}
             <span style={{ 
               marginLeft: 8, 
               background: activeTab === tab ? 'var(--primary)' : 'var(--border)', 
@@ -204,7 +228,7 @@ export default function CaregiverDashboard() {
               borderRadius: 12, 
               fontSize: '0.75rem' 
             }}>
-              {tab === 'pending' ? pending.length : tab === 'active' ? active.length : past.length}
+              {tab === 'pending' ? pending.length : tab === 'active' ? active.length : tab === 'past' ? past.length : reviews.length}
             </span>
           </button>
         ))}
@@ -212,93 +236,156 @@ export default function CaregiverDashboard() {
 
       {/* LIST */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-6)' }}>
-        {getActiveList().length === 0 ? (
-          <div style={{ textAlign: 'center', padding: 'var(--space-12)', background: 'var(--warm-white)', borderRadius: 'var(--radius-lg)', border: '1px dashed var(--border)' }}>
-            <span style={{ fontSize: '2.5rem', marginBottom: 'var(--space-4)', display: 'block' }}>🍃</span>
-            <h3 style={{ color: 'var(--text-secondary)' }}>No {activeTab} sessions found.</h3>
-          </div>
+        {activeTab === 'reviews' ? (
+          reviews.length === 0 ? (
+            <div style={{ textAlign: 'center', padding: 'var(--space-12)', background: 'var(--warm-white)', borderRadius: 'var(--radius-lg)', border: '1px dashed var(--border)' }}>
+              <span style={{ fontSize: '2.5rem', marginBottom: 'var(--space-4)', display: 'block' }}>⭐</span>
+              <h3 style={{ color: 'var(--text-secondary)' }}>No reviews yet.</h3>
+            </div>
+          ) : (
+            reviews.map(review => (
+              <div key={review._id} className="card" style={{ padding: 'var(--space-6)' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 'var(--space-4)' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                    <div className="avatar" style={{ 
+                      width: 40, height: 40, 
+                      backgroundImage: review.patient?.user?.avatar ? `url(${review.patient.user.avatar})` : 'none',
+                      backgroundSize: 'cover', backgroundPosition: 'center'
+                    }}>
+                      {!review.patient?.user?.avatar && review.patient?.user?.name.charAt(0)}
+                    </div>
+                    <div>
+                      <div style={{ fontWeight: 700 }}>{review.patient?.user?.name}</div>
+                      <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>{new Date(review.createdAt).toLocaleDateString()}</div>
+                    </div>
+                  </div>
+                  <div style={{ color: '#f59e0b', fontSize: '1.25rem' }}>
+                    {'★'.repeat(review.rating)}{'☆'.repeat(5 - review.rating)}
+                  </div>
+                </div>
+                <p style={{ color: 'var(--text-secondary)', fontStyle: 'italic', marginBottom: 'var(--space-4)' }}>"{review.comment}"</p>
+                
+                {review.caregiverResponse ? (
+                  <div style={{ background: 'var(--sage-50)', padding: 'var(--space-4)', borderRadius: 'var(--radius-md)', borderLeft: '3px solid var(--secondary)' }}>
+                    <div style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--secondary)', textTransform: 'uppercase', marginBottom: '4px' }}>Your Response</div>
+                    <p style={{ margin: 0, fontSize: '0.9rem' }}>{review.caregiverResponse}</p>
+                  </div>
+                ) : (
+                  <div style={{ marginTop: 'var(--space-2)' }}>
+                    <textarea 
+                      id={`respond-${review._id}`}
+                      className="form-input" rows={2} 
+                      placeholder="Write a professional response..." 
+                      style={{ width: '100%', marginBottom: '10px' }}
+                    />
+                    <button 
+                      className="btn btn-secondary btn-sm"
+                      onClick={() => {
+                        const val = document.getElementById(`respond-${review._id}`).value;
+                        handleRespondToReview(review._id, val);
+                      }}
+                      disabled={submittingAction.id === review._id}
+                    >
+                      Post Response
+                    </button>
+                  </div>
+                )}
+              </div>
+            ))
+          )
         ) : (
-          getActiveList().map(booking => (
-            <div key={booking._id} style={{
-              background: 'rgba(255, 255, 255, 0.7)',
-              backdropFilter: 'blur(10px)',
-              border: '1px solid var(--border)',
-              borderRadius: 'var(--radius-lg)',
-              padding: 'var(--space-6)',
-              boxShadow: 'var(--shadow-sm)',
-              display: 'flex',
-              flexDirection: 'column',
-              gap: 'var(--space-4)',
-              animation: 'fadeInUp 0.4s var(--ease-smooth)'
-            }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-4)' }}>
-                  <div className="avatar" style={{ width: 48, height: 48 }}>
-                    {booking.patient?.user?.name.charAt(0) || 'P'}
+          getActiveList().length === 0 ? (
+            <div style={{ textAlign: 'center', padding: 'var(--space-12)', background: 'var(--warm-white)', borderRadius: 'var(--radius-lg)', border: '1px dashed var(--border)' }}>
+              <span style={{ fontSize: '2.5rem', marginBottom: 'var(--space-4)', display: 'block' }}>🍃</span>
+              <h3 style={{ color: 'var(--text-secondary)' }}>No {activeTab} sessions found.</h3>
+            </div>
+          ) : (
+            getActiveList().map(booking => (
+              <div key={booking._id} style={{
+                background: 'rgba(255, 255, 255, 0.7)',
+                backdropFilter: 'blur(10px)',
+                border: '1px solid var(--border)',
+                borderRadius: 'var(--radius-lg)',
+                padding: 'var(--space-6)',
+                boxShadow: 'var(--shadow-sm)',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: 'var(--space-4)',
+                animation: 'fadeInUp 0.4s var(--ease-smooth)'
+              }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-4)' }}>
+                    <div className="avatar" style={{ 
+                      width: 48, height: 48,
+                      backgroundImage: booking.patient?.user?.avatar ? `url(${booking.patient.user.avatar})` : 'none',
+                      backgroundSize: 'cover', backgroundPosition: 'center'
+                    }}>
+                      {!booking.patient?.user?.avatar && (booking.patient?.user?.name.charAt(0) || 'P')}
+                    </div>
+                    <div>
+                      <h3 style={{ margin: 0, fontSize: '1.125rem' }}>{booking.patient?.user?.name}</h3>
+                      <p style={{ margin: 0, color: 'var(--text-muted)', fontSize: '0.875rem' }}>Service: {booking.service?.name}</p>
+                    </div>
+                  </div>
+                  <div className={`badge badge-${booking.status === 'completed' ? 'sage' : booking.status === 'cancelled' ? 'muted' : 'terracotta'}`}>
+                    {booking.status}
+                  </div>
+                </div>
+                {/* ... existing fields ... */}
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 'var(--space-4)', background: 'var(--cream-100)', padding: 'var(--space-4)', borderRadius: 'var(--radius-md)' }}>
+                  <div>
+                    <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', textTransform: 'uppercase' }}>Date & Time</div>
+                    <div style={{ fontWeight: 500 }}>{new Date(booking.startDate).toLocaleDateString()}</div>
+                    <div style={{ fontSize: '0.875rem' }}>{booking.startTime} - {booking.endTime}</div>
                   </div>
                   <div>
-                    <h3 style={{ margin: 0, fontSize: '1.125rem' }}>{booking.patient?.user?.name}</h3>
-                    <p style={{ margin: 0, color: 'var(--text-muted)', fontSize: '0.875rem' }}>Service: {booking.service?.name}</p>
+                    <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', textTransform: 'uppercase' }}>Location</div>
+                    <div style={{ fontWeight: 500 }}>{booking.address?.street}</div>
+                    <div style={{ fontSize: '0.875rem' }}>{booking.address?.city}, {booking.address?.state} {booking.address?.zipCode}</div>
                   </div>
                 </div>
-                <div className={`badge badge-${booking.status === 'completed' ? 'sage' : booking.status === 'cancelled' ? 'muted' : 'terracotta'}`}>
-                  {booking.status}
-                </div>
-              </div>
 
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 'var(--space-4)', background: 'var(--cream-100)', padding: 'var(--space-4)', borderRadius: 'var(--radius-md)' }}>
-                <div>
-                  <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', textTransform: 'uppercase' }}>Date & Time</div>
-                  <div style={{ fontWeight: 500 }}>{new Date(booking.startDate).toLocaleDateString()}</div>
-                  <div style={{ fontSize: '0.875rem' }}>{booking.startTime} - {booking.endTime}</div>
-                </div>
-                <div>
-                  <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', textTransform: 'uppercase' }}>Location</div>
-                  <div style={{ fontWeight: 500 }}>{booking.address?.street}</div>
-                  <div style={{ fontSize: '0.875rem' }}>{booking.address?.city}, {booking.address?.state} {booking.address?.zipCode}</div>
-                </div>
-              </div>
-
-              {booking.specialInstructions && (
-                <div style={{ fontSize: '0.875rem', padding: 'var(--space-3)', borderLeft: '3px solid var(--secondary)', background: 'var(--warm-white)' }}>
-                  <strong>Notes:</strong> {booking.specialInstructions}
-                </div>
-              )}
-
-              {/* ACTIONS */}
-              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 'var(--space-3)', marginTop: 'var(--space-2)' }}>
-                <button 
-                  className="btn btn-ghost btn-sm" 
-                  onClick={() => { setChatBookingId(booking._id); setChatOpen(true); }}
-                  style={{ display: 'flex', alignItems: 'center', gap: '6px', color: 'var(--primary)' }}
-                >
-                  💬 Message Family
-                </button>
-                {booking.status === 'pending' && (
-                  <>
-                    <button className="btn btn-primary" onClick={() => handleUpdateStatus(booking._id, 'awaiting_payment')} disabled={submittingAction.id === booking._id}>
-                      {submittingAction.id === booking._id && submittingAction.action === 'awaiting_payment' ? 'Requesting...' : 'Accept & Request Payment'}
-                    </button>
-                    <button className="btn btn-outline" onClick={() => handleUpdateStatus(booking._id, 'cancelled')} disabled={submittingAction.id === booking._id}>
-                      {submittingAction.id === booking._id && submittingAction.action === 'cancelled' ? 'Declining...' : 'Decline'}
-                    </button>
-                  </>
+                {booking.specialInstructions && (
+                  <div style={{ fontSize: '0.875rem', padding: 'var(--space-3)', borderLeft: '3px solid var(--secondary)', background: 'var(--warm-white)' }}>
+                    <strong>Notes:</strong> {booking.specialInstructions}
+                  </div>
                 )}
 
-                {booking.status === 'confirmed' && (
-                  <button className="btn btn-secondary" onClick={() => handleUpdateStatus(booking._id, 'in_progress')} disabled={submittingAction.id === booking._id}>
-                    {submittingAction.id === booking._id && submittingAction.action === 'in_progress' ? 'Starting...' : 'Start Session'}
+                {/* ACTIONS */}
+                <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 'var(--space-3)', marginTop: 'var(--space-2)' }}>
+                  <button 
+                    className="btn btn-ghost btn-sm" 
+                    onClick={() => { setChatBookingId(booking._id); setChatOpen(true); }}
+                    style={{ display: 'flex', alignItems: 'center', gap: '6px', color: 'var(--primary)' }}
+                  >
+                    💬 Message Family
                   </button>
-                )}
+                  {booking.status === 'pending' && (
+                    <>
+                      <button className="btn btn-primary" onClick={() => handleUpdateStatus(booking._id, 'awaiting_payment')} disabled={submittingAction.id === booking._id}>
+                        {submittingAction.id === booking._id && submittingAction.action === 'awaiting_payment' ? 'Requesting...' : 'Accept & Request Payment'}
+                      </button>
+                      <button className="btn btn-outline" onClick={() => handleUpdateStatus(booking._id, 'cancelled')} disabled={submittingAction.id === booking._id}>
+                        {submittingAction.id === booking._id && submittingAction.action === 'cancelled' ? 'Declining...' : 'Decline'}
+                      </button>
+                    </>
+                  )}
 
-                {booking.status === 'in_progress' && (
-                  <button className="btn btn-primary" onClick={() => setCareNoteModal({ isOpen: true, bookingId: booking._id })} disabled={submittingAction.id === booking._id}>
-                    Complete & Add Care Note
-                  </button>
-                )}
+                  {booking.status === 'confirmed' && (
+                    <button className="btn btn-secondary" onClick={() => handleUpdateStatus(booking._id, 'in_progress')} disabled={submittingAction.id === booking._id}>
+                      {submittingAction.id === booking._id && submittingAction.action === 'in_progress' ? 'Starting...' : 'Start Session'}
+                    </button>
+                  )}
+
+                  {booking.status === 'in_progress' && (
+                    <button className="btn btn-primary" onClick={() => setCareNoteModal({ isOpen: true, bookingId: booking._id })} disabled={submittingAction.id === booking._id}>
+                      Complete & Add Care Note
+                    </button>
+                  )}
+                </div>
               </div>
-            </div>
-          ))
+            ))
+          )
         )}
       </div>
 

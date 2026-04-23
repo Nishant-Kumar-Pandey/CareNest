@@ -62,6 +62,7 @@ export const api = {
   reviews: {
     byCaregiverId: (id) => request(`/reviews/caregiver/${id}`),
     create: (bookingId, body) => request(`/bookings/${bookingId}/review`, { method: 'POST', body: JSON.stringify(body) }),
+    respond: (reviewId, response) => request(`/reviews/${reviewId}/respond`, { method: 'PATCH', body: JSON.stringify({ response }) }),
   },
   careNotes: {
     list: (bookingId) => request(`/bookings/${bookingId}/notes`),

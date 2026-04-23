@@ -26,7 +26,7 @@ const container = (content) => `
 `;
 
 exports.verificationEmail = (name, otp) => container(`
-  <h2 style="color: #333 text-align: center;">Verify Your Email</h2>
+  <h2 style="color: #333; text-align: center;">Verify Your Email</h2>
   <p>Hello <strong>${name}</strong>,</p>
   <p>Thank you for joining CareNest! To complete your registration and secure your account, please use the following One-Time Password (OTP):</p>
   <div style="text-align: center; margin: 30px 0;">
@@ -91,3 +91,47 @@ exports.otpAlertEmail = (name, otp) => container(`
   </div>
   <p>This code is valid for 10 minutes. If you did not request this, please secure your account immediately.</p>
 `);
+
+exports.vettingStatusEmail = (name, status, message) => container(`
+  <h2 style="color: #333;">Profile Vetting Update</h2>
+  <p>Hello <strong>${name}</strong>,</p>
+  <p>Our administration team has reviewed your caregiver application.</p>
+  <p>Status: <strong style="color: ${status === 'approved' ? '#4d8452' : '#bc6c5c'}; text-transform: uppercase;">${status}</strong></p>
+  <div style="background-color: #f9f9f9; padding: 15px; border-radius: 5px; margin: 20px 0; border-left: 4px solid ${status === 'approved' ? '#4d8452' : '#bc6c5c'};">
+    <p style="margin: 0;">${message}</p>
+  </div>
+  ${status === 'approved' ? `
+    <div style="text-align: center; margin: 25px 0;">
+      <a href="${process.env.CLIENT_URL || 'http://localhost:3000'}/dashboard" style="background-color: #4d8452; color: white; padding: 12px 25px; text-decoration: none; border-radius: 5px; font-weight: bold;">Access Dashboard</a>
+    </div>
+  ` : `
+    <p>Please log in to your account to update your profile or contact support for more information.</p>
+  `}
+`);
+
+exports.newReviewEmail = (caregiverName, rating, comment) => container(`
+  <h2 style="color: #333;">New Patient Review! ⭐</h2>
+  <p>Hello <strong>${caregiverName}</strong>,</p>
+  <p>A patient has just left a review for your recent care session.</p>
+  <div style="background-color: #fdf8f3; padding: 20px; border-radius: 12px; margin: 20px 0; border: 1px solid #eba88e;">
+    <div style="font-size: 24px; color: #f59e0b; margin-bottom: 8px;">${'★'.repeat(Math.round(rating))}${'☆'.repeat(5 - Math.round(rating))}</div>
+    <p style="margin: 0; font-style: italic; color: #5c4033;">"${comment}"</p>
+  </div>
+  <p>Positive reviews help you stand out and attract more families. You can respond to this review from your dashboard.</p>
+  <div style="text-align: center; margin: 25px 0;">
+    <a href="${process.env.CLIENT_URL || 'http://localhost:3000'}/dashboard/caregiver" style="background-color: #bc6c5c; color: white; padding: 12px 25px; text-decoration: none; border-radius: 5px; font-weight: bold;">View Reviews</a>
+  </div>
+`);
+
+exports.newMessageEmail = (recipientName, senderName, messageSnippet) => container(`
+  <h2 style="color: #333;">New Message from ${senderName}</h2>
+  <p>Hello <strong>${recipientName}</strong>,</p>
+  <p>You have a unread message waiting for you on CareNest.</p>
+  <div style="background-color: #f2f7f2; padding: 15px; border-radius: 8px; margin: 20px 0; color: #305534;">
+    <p style="margin: 0;">${messageSnippet}...</p>
+  </div>
+  <div style="text-align: center; margin: 25px 0;">
+    <a href="${process.env.CLIENT_URL || 'http://localhost:3000'}/dashboard" style="background-color: #bc6c5c; color: white; padding: 12px 25px; text-decoration: none; border-radius: 5px; font-weight: bold;">Reply Now</a>
+  </div>
+`);
+
