@@ -238,3 +238,40 @@ exports.getMe = async (req, res) => {
 
   res.json({ success: true, user: req.user, profileStatus });
 };
+
+// @desc   Upload/Update user avatar
+// @route  POST /api/auth/upload-avatar
+// @access Private
+exports.uploadAvatar = async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ success: false, message: 'Please upload an image' });
+    }
+
+    const User = require('../models/User');
+    const { cloudinary } = require('../config/cloudinary');
+    
+    const user = await User.findById(req.user._id);
+    
+    // Delete old image from Cloudinary if it exists
+    if (user.avatar && user.avatar.includes('cloudinary')) {
+      try {
+        const publicId = user.avatar.split('/').slice(-3).join('/').split('.')[0];
+        await cloudinary.uploader.destroy(publicId);
+      } catch (err) {
+        console.error('Failed to delete old avatar from Cloudinary:', err.message);
+      }
+    }
+
+    user.avatar = req.file.path; // New Cloudinary URL
+    await user.save({ validateBeforeSave: false });
+
+    res.status(200).json({
+      success: true,
+      message: 'Avatar updated successfully',
+      avatar: user.avatar
+    });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+};

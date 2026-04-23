@@ -56,8 +56,10 @@ export default function CaregiverSetup() {
             specializations: p.specializations || [],
             languages: p.languages?.join(', ') || '',
             certifications: p.certifications || [],
-            availability: p.availability || formData.availability
+            availability: p.availability || formData.availability,
+            avatar: res.data.user?.avatar || ''
           });
+
         }
       } catch (err) {
         // If 404, it means setup is required, ignore
@@ -179,6 +181,48 @@ export default function CaregiverSetup() {
             {step === 1 && (
               <div className="animate-fadeInRight">
                 <h2 style={{ fontFamily: 'var(--font-serif)', fontSize: '1.5rem', marginBottom: 'var(--space-6)', color: 'var(--secondary-dark)' }}>1. Core Metrics</h2>
+                
+                {/* Avatar Upload */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: '20px', marginBottom: 'var(--space-6)', padding: '20px', background: 'var(--sage-50)', borderRadius: 'var(--radius-lg)' }}>
+                  <div className="avatar" style={{ 
+                    width: 80, height: 80, fontSize: '2rem', 
+                    backgroundImage: formData.avatar ? `url(${formData.avatar})` : 'none',
+                    backgroundSize: 'cover',
+                    backgroundPosition: 'center',
+                    border: '3px solid white',
+                    boxShadow: 'var(--shadow-sm)'
+                  }}>
+                    {!formData.avatar && '👤'}
+                  </div>
+                  <div>
+                    <label className="form-label" style={{ marginBottom: '8px', display: 'block' }}>Profile Picture</label>
+                    <input 
+                      type="file" 
+                      accept="image/*" 
+                      onChange={async (e) => {
+                        const file = e.target.files[0];
+                        if (!file) return;
+                        
+                        const uploadToast = toast.loading('Uploading image...');
+                        try {
+                          const uploadData = new FormData();
+                          uploadData.append('avatar', file);
+                          const res = await api.auth.uploadAvatar(uploadData);
+                          setFormData(prev => ({ ...prev, avatar: res.avatar }));
+                          toast.success('Avatar uploaded!', { id: uploadToast });
+                          
+                          // Update local user storage
+                          const storedUser = JSON.parse(localStorage.getItem('user') || '{}');
+                          localStorage.setItem('user', JSON.stringify({ ...storedUser, avatar: res.avatar }));
+                        } catch (err) {
+                          toast.error('Upload failed: ' + err.message, { id: uploadToast });
+                        }
+                      }}
+                      style={{ fontSize: '0.875rem' }}
+                    />
+                    <p style={{ margin: '4px 0 0', fontSize: '0.75rem', color: 'var(--text-muted)' }}>Professional headshot recommended (Max 5MB)</p>
+                  </div>
+                </div>
                 
                 <div className="form-group" style={{ marginBottom: 'var(--space-4)' }}>
                   <label className="form-label">Professional Bio</label>

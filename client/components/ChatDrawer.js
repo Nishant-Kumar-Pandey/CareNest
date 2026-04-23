@@ -10,6 +10,8 @@ export default function ChatDrawer({ isOpen, onClose, bookingId, currentUser }) 
   const [newMessage, setNewMessage] = useState('');
   const [loading, setLoading] = useState(false);
   const scrollRef = useRef(null);
+  const fileInputRef = useRef(null);
+
 
   useEffect(() => {
     if (isOpen && bookingId) {
@@ -52,20 +54,30 @@ export default function ChatDrawer({ isOpen, onClose, bookingId, currentUser }) 
     }
   };
 
-  const handleSendMessage = (e) => {
+  const handleSendMessage = async (e) => {
     e.preventDefault();
-    if (!newMessage.trim()) return;
+    if (!newMessage.trim() && !fileInputRef.current?.files[0]) return;
 
-    const messageData = {
-      bookingId,
-      senderId: currentUser._id,
-      text: newMessage.trim()
-    };
-
-    // Emit via socket (Backend handles saving to DB and broadcasting back)
-    socket.emit('send_message', messageData);
-    setNewMessage('');
+    const isMedia = fileInputRef.current?.files?.length > 0;
+    
+    try {
+      if (isMedia) {
+        const body = new FormData();
+        body.append('text', newMessage.trim());
+        Array.from(fileInputRef.current.files).forEach(file => {
+          body.append('files', file);
+        });
+        await api.chat.sendMessage(bookingId, body);
+        fileInputRef.current.value = '';
+      } else {
+        await api.chat.sendMessage(bookingId, { text: newMessage.trim() });
+      }
+      setNewMessage('');
+    } catch (err) {
+      toast.error('Failed to send message');
+    }
   };
+
 
   if (!isOpen) return null;
 
@@ -118,7 +130,26 @@ export default function ChatDrawer({ isOpen, onClose, bookingId, currentUser }) 
                   lineHeight: 1.4
                 }}>
                   {msg.text}
+                  {msg.attachments?.length > 0 && (
+                    <div style={{ marginTop: '8px', display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                      {msg.attachments.map((att, i) => (
+                        <a 
+                          key={i} href={att.url} target="_blank" rel="noopener noreferrer"
+                          style={{ display: 'block', maxWidth: '100%' }}
+                        >
+                          {att.fileType === 'image' ? (
+                            <img src={att.url} alt="attachment" style={{ maxWidth: '100%', borderRadius: '8px', boxShadow: 'var(--shadow-xs)' }} />
+                          ) : (
+                            <div style={{ padding: '8px', background: 'rgba(0,0,0,0.05)', borderRadius: '4px', fontSize: '0.8rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                              📄 Document
+                            </div>
+                          )}
+                        </a>
+                      ))}
+                    </div>
+                  )}
                 </div>
+
                 <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)', alignSelf: isMe ? 'flex-end' : 'flex-start' }}>
                   {new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                 </span>
@@ -130,7 +161,29 @@ export default function ChatDrawer({ isOpen, onClose, bookingId, currentUser }) 
 
       {/* Input Area */}
       <form onSubmit={handleSendMessage} style={{ padding: 'var(--space-4)', borderTop: '1px solid var(--border)', background: 'white' }}>
-        <div style={{ display: 'flex', gap: 'var(--space-2)' }}>
+        <div style={{ display: 'flex', gap: 'var(--space-2)', alignItems: 'center' }}>
+          <button 
+            type="button" 
+            onClick={() => fileInputRef.current?.click()}
+            style={{ 
+              width: 40, height: 40, borderRadius: '50%', background: 'var(--cream-100)', 
+              border: 'none', cursor: 'pointer', fontSize: '1.2rem', color: 'var(--text-secondary)' 
+            }}
+          >
+            📎
+          </button>
+          <input 
+            type="file" 
+            ref={fileInputRef} 
+            style={{ display: 'none' }} 
+            multiple 
+            accept="image/*,.pdf"
+            onChange={() => {
+              if (fileInputRef.current?.files?.length > 0) {
+                toast.success(`${fileInputRef.current.files.length} file(s) selected`);
+              }
+            }}
+          />
           <input 
             type="text" 
             placeholder="Type a message..."
@@ -153,6 +206,7 @@ export default function ChatDrawer({ isOpen, onClose, bookingId, currentUser }) 
           </button>
         </div>
       </form>
+
 
       <style jsx>{`
         @keyframes slideInRight {

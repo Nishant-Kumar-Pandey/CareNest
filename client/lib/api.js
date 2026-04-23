@@ -2,18 +2,23 @@ const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
 
 async function request(path, options = {}) {
   const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
-  const headers = { 'Content-Type': 'application/json', ...(token ? { Authorization: `Bearer ${token}` } : {}), ...options.headers };
+  const isFormData = options.body instanceof FormData;
+  
+  const headers = { 
+    ...(isFormData ? {} : { 'Content-Type': 'application/json' }),
+    ...(token ? { Authorization: `Bearer ${token}` } : {}), 
+    ...options.headers 
+  };
+  
   const res = await fetch(`${API_BASE}${path}`, { ...options, headers });
   const data = await res.json();
   
   if (!res.ok) {
-    // Auto-logout if unauthorized (stale token or deleted user)
     if (res.status === 401 && typeof window !== 'undefined') {
       const msg = data.message?.toLowerCase() || '';
       if (msg.includes('user not found') || msg.includes('authorized') || msg.includes('token')) {
         localStorage.removeItem('token');
         localStorage.removeItem('user');
-        // Only redirect if not already on the auth or home page to avoid loops
         if (!window.location.pathname.includes('/auth') && window.location.pathname !== '/') {
            window.location.href = '/auth?expired=true';
         }
@@ -32,6 +37,8 @@ export const api = {
     verifyEmail: (body) => request('/auth/verify-email', { method: 'POST', body: JSON.stringify(body) }),
     forgotPassword: (body) => request('/auth/forgot-password', { method: 'POST', body: JSON.stringify(body) }),
     resetPassword: (body) => request('/auth/reset-password', { method: 'POST', body: JSON.stringify(body) }),
+    uploadAvatar: (formData) => request('/auth/upload-avatar', { method: 'POST', body: formData }),
+
   },
   caregivers: {
     list: (params = '') => request(`/caregivers?${params}`),
@@ -72,7 +79,11 @@ export const api = {
   },
   chat: {
     getMessages: (bookingId) => request(`/chat/${bookingId}/messages`),
-    sendMessage: (bookingId, text) => request(`/chat/${bookingId}/messages`, { method: 'POST', body: JSON.stringify({ text }) }),
+    sendMessage: (bookingId, body) => request(`/chat/${bookingId}/messages`, { 
+      method: 'POST', 
+      body: body instanceof FormData ? body : JSON.stringify(body) 
+    }),
+
   },
   notifications: {
     list: () => request('/notifications'),

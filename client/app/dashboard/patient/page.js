@@ -158,22 +158,29 @@ export default function PatientDashboard() {
   };
 
   const submitReview = async () => {
-    if (!reviewModal.comment.trim()) return alert('Review comment is required.');
+    if (!reviewModal.comment.trim()) return toast.error('Review comment is required.');
     try {
       setSubmittingId('review');
       await api.reviews.create(reviewModal.bookingId, {
         rating: Number(reviewModal.rating),
-        comment: reviewModal.comment
+        comment: reviewModal.comment,
+        categories: {
+          punctuality: Number(reviewModal.punctuality || 5),
+          communication: Number(reviewModal.communication || 5),
+          professionalism: Number(reviewModal.professionalism || 5),
+          quality: Number(reviewModal.quality || 5)
+        }
       });
-      alert('Review submitted successfully!');
-      setReviewModal({ isOpen: false, bookingId: null, rating: 5, comment: '' });
+      toast.success('Review submitted successfully!');
+      setReviewModal({ isOpen: false, bookingId: null, rating: 5, comment: '', punctuality: 5, communication: 5, professionalism: 5, quality: 5 });
       fetchBookings();
     } catch (err) {
-      alert(err.message);
+      toast.error(err.message);
     } finally {
       setSubmittingId(null);
     }
   };
+
 
   const upcoming = bookings.filter(b => ['pending', 'confirmed', 'awaiting_payment'].includes(b.status));
   const active = bookings.filter(b => b.status === 'in_progress');
@@ -432,35 +439,57 @@ export default function PatientDashboard() {
       {reviewModal.isOpen && (
         <div style={{
           position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
-          background: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(4px)',
-          display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000
+          background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(8px)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000,
+          padding: '20px'
         }}>
-          <div style={{
+          <div className="animate-scaleIn" style={{
             background: 'var(--warm-white)', borderRadius: 'var(--radius-xl)', padding: 'var(--space-8)',
-            width: '100%', maxWidth: 500, boxShadow: 'var(--shadow-lg)'
+            width: '100%', maxWidth: 550, boxShadow: 'var(--shadow-xl)', maxHeight: '90vh', overflowY: 'auto'
           }}>
-            <h2 style={{ fontFamily: 'var(--font-serif)', marginBottom: 'var(--space-4)' }}>Leave a Review</h2>
-            <div className="form-group">
-              <label className="form-label">Rating</label>
-              <select className="form-input" value={reviewModal.rating} onChange={e => setReviewModal(prev => ({...prev, rating: e.target.value}))}>
-                {[5, 4, 3, 2, 1].map(num => (
-                  <option key={num} value={num}>{num} {num > 1 ? 'Stars' : 'Star'}</option>
-                ))}
-              </select>
+            <h2 style={{ fontFamily: 'var(--font-serif)', marginBottom: 'var(--space-1)', color: 'var(--text-primary)' }}>Share Your Experience</h2>
+            <p style={{ color: 'var(--text-secondary)', fontSize: '0.875rem', marginBottom: 'var(--space-6)' }}>Your feedback helps other families find the best care.</p>
+            
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', marginBottom: 'var(--space-6)' }}>
+              {[
+                { key: 'rating', label: 'Overall Rating' },
+                { key: 'punctuality', label: 'Punctuality' },
+                { key: 'communication', label: 'Communication' },
+                { key: 'professionalism', label: 'Professionalism' },
+                { key: 'quality', label: 'Quality of Care' }
+              ].map((cat) => (
+                <div key={cat.key} className="form-group">
+                  <label className="form-label" style={{ fontSize: '0.75rem', textTransform: 'uppercase' }}>{cat.label}</label>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <input 
+                      type="range" min="1" max="5" step="1"
+                      value={reviewModal[cat.key] || 5} 
+                      onChange={e => setReviewModal(prev => ({...prev, [cat.key]: Number(e.target.value)}))}
+                      style={{ flex: 1, accentColor: 'var(--primary)' }}
+                    />
+                    <span style={{ fontWeight: 700, minWidth: '1.5rem', textAlign: 'center', color: 'var(--primary)' }}>
+                      {reviewModal[cat.key] || 5}
+                    </span>
+                  </div>
+                </div>
+              ))}
             </div>
-            <div className="form-group">
-              <label className="form-label">Comments *</label>
+
+            <div className="form-group" style={{ marginBottom: 'var(--space-6)' }}>
+              <label className="form-label">Written Feedback *</label>
               <textarea 
-                className="form-input" rows={3} 
-                placeholder="Share your experience..."
+                className="form-input" rows={4} 
+                placeholder="What did you appreciate most? Any areas for improvement?"
                 value={reviewModal.comment} 
                 onChange={e => setReviewModal(prev => ({...prev, comment: e.target.value}))} 
+                style={{ resize: 'none' }}
               />
             </div>
-            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 'var(--space-4)', marginTop: 'var(--space-6)' }}>
-              <button className="btn btn-ghost" onClick={() => setReviewModal({ isOpen: false, bookingId: null, rating: 5, comment: '' })}>Cancel</button>
+
+            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 'var(--space-4)' }}>
+              <button className="btn btn-ghost" onClick={() => setReviewModal({ isOpen: false, bookingId: null, rating: 5, comment: '', punctuality: 5, communication: 5, professionalism: 5, quality: 5 })}>Cancel</button>
               <button className="btn btn-primary" onClick={submitReview} disabled={submittingId === 'review'}>
-                {submittingId === 'review' ? 'Submitting...' : 'Submit Review'}
+                {submittingId === 'review' ? 'Submitting...' : 'Post Review'}
               </button>
             </div>
           </div>

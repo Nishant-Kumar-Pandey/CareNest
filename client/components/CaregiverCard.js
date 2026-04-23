@@ -37,12 +37,18 @@ export default function CaregiverCard({ cg, view = 'grid' }) {
   if (view === 'list') {
     return (
       <div className="card animate-fadeInUp" style={{ padding: 'var(--space-6)', display: 'flex', gap: 'var(--space-6)', alignItems: 'flex-start' }}>
-        <div className="avatar" style={{ width: 80, height: 80, fontSize: '1.5rem', flexShrink: 0, fontFamily: 'var(--font-serif)', position: 'relative' }}>
-          {initials}
+        <div className="avatar" style={{ 
+          width: 80, height: 80, fontSize: '1.5rem', flexShrink: 0, fontFamily: 'var(--font-serif)', position: 'relative',
+          backgroundImage: cg.user.avatar ? `url(${cg.user.avatar})` : 'none',
+          backgroundSize: 'cover',
+          backgroundPosition: 'center'
+        }}>
+          {!cg.user.avatar && initials}
           {cg.isVerified && (
             <div style={{ position: 'absolute', bottom: 0, right: 0, background: 'var(--secondary)', color: 'white', border: '2px solid white', borderRadius: '50%', width: 24, height: 24, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.75rem' }}>✓</div>
           )}
         </div>
+
         <div style={{ flex: 1, minWidth: 0 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap', marginBottom: 'var(--space-2)' }}>
             <h3 style={{ fontSize: '1.25rem', margin: 0, color: 'var(--text-primary)', fontWeight: 700 }}>{cg.user.name}</h3>
@@ -83,12 +89,18 @@ export default function CaregiverCard({ cg, view = 'grid' }) {
       onMouseOut={(e) => e.currentTarget.style.transform = 'translateY(0)'}
     >
       <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-4)' }}>
-        <div className="avatar" style={{ width: 64, height: 64, fontSize: '1.25rem', flexShrink: 0, fontFamily: 'var(--font-serif)', position: 'relative' }}>
-          {initials}
+        <div className="avatar" style={{ 
+          width: 64, height: 64, fontSize: '1.25rem', flexShrink: 0, fontFamily: 'var(--font-serif)', position: 'relative',
+          backgroundImage: cg.user.avatar ? `url(${cg.user.avatar})` : 'none',
+          backgroundSize: 'cover',
+          backgroundPosition: 'center'
+        }}>
+          {!cg.user.avatar && initials}
           {cg.isVerified && (
             <div style={{ position: 'absolute', bottom: -2, right: -2, background: 'var(--secondary)', color: 'white', border: '2px solid white', borderRadius: '50%', width: 22, height: 22, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.7rem' }}>✓</div>
           )}
         </div>
+
         <div style={{ flex: 1 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', marginBottom: 4 }}>
             <h3 style={{ fontSize: '1.125rem', margin: 0, color: 'var(--text-primary)', fontWeight: 700 }}>{cg.user.name}</h3>

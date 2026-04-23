@@ -56,16 +56,43 @@ exports.sendMessage = async (req, res) => {
       return res.status(403).json({ success: false, message: 'Not authorized to send messages to this booking' });
     }
 
+    const attachments = [];
+    if (req.files && req.files.length > 0) {
+      req.files.forEach(file => {
+        attachments.push({
+          url: file.path,
+          fileType: file.mimetype.startsWith('image') ? 'image' : 'document'
+        });
+      });
+    }
+
+    if (!text && attachments.length === 0) {
+      return res.status(400).json({ success: false, message: 'Message cannot be empty' });
+    }
+
     const message = await Message.create({
       booking: bookingId,
       sender: req.user.id,
-      text,
+      text: text || '',
+      attachments,
       timestamp: new Date()
     });
 
+
     await message.populate('sender', 'name role');
 
+    // Emit via socket
+    const io = require('../socket').getIO();
+    io.to(bookingId).emit('receive_message', message);
+    
+    // Notify participants
+    const patientUserId = booking.patient?.user?._id || booking.patient?.user;
+    const caregiverUserId = booking.caregiver?.user?._id || booking.caregiver?.user;
+    if (patientUserId) io.to(patientUserId.toString()).emit('new_chat_message', message);
+    if (caregiverUserId) io.to(caregiverUserId.toString()).emit('new_chat_message', message);
+
     res.status(201).json({ success: true, data: message });
+
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
   }

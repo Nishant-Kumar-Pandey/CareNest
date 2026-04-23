@@ -298,8 +298,13 @@ export default function Navbar() {
                   )}
                 </div>
                 <div style={{ display:'flex', alignItems:'center', gap:10, padding:'6px 14px', borderRadius:'var(--radius-full)', background:'var(--terracotta-50)', border:'1px solid var(--terracotta-200)' }}>
-                  <div className="avatar" style={{ width:30, height:30, fontSize:'0.875rem', background:'var(--primary)', color:'#fff', border:'none' }}>
-                    {user.name?.[0]?.toUpperCase()}
+                  <div className="avatar" style={{ 
+                    width:30, height:30, fontSize:'0.875rem', background:'var(--primary)', color:'#fff', border:'none',
+                    backgroundImage: user.avatar ? `url(${user.avatar})` : 'none',
+                    backgroundSize: 'cover',
+                    backgroundPosition: 'center'
+                  }}>
+                    {!user.avatar && (user.name?.[0]?.toUpperCase())}
                   </div>
                   <span style={{ fontSize:'0.875rem', fontWeight:600, color:'var(--text-primary)' }}>{user.name?.split(' ')[0]}</span>
                 </div>
