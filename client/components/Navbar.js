@@ -13,6 +13,7 @@ export default function Navbar() {
   const [notifications, setNotifications] = useState([]);
   const [unreadNotifications, setUnreadNotifications] = useState(0);
   const [showNotifTray, setShowNotifTray] = useState(false);
+  const [hasNewMessages, setHasNewMessages] = useState(false);
   const pathname = usePathname();
   const router = useRouter();
 
@@ -105,6 +106,7 @@ export default function Navbar() {
         ), { duration: 6000, position: 'top-right' });
         
         setUnreadNotifications(prev => prev + 1);
+        setHasNewMessages(true);
       };
 
       socket.on('notification', handleNotification);
@@ -185,7 +187,7 @@ export default function Navbar() {
     { href: '/', label: 'Home' },
     { href: '/caregivers', label: 'Find Caregivers' },
     { href: '/book', label: 'Book Care' },
-    { href: user?.role === 'admin' ? '/dashboard/admin' : '/dashboard', label: 'Dashboard' },
+    { href: user?.role === 'admin' ? '/dashboard/admin' : (user?.role === 'caregiver' ? '/dashboard/caregiver' : '/dashboard/patient'), label: 'Dashboard', hasDot: hasNewMessages },
   ];
 
   return (
@@ -214,17 +216,22 @@ export default function Navbar() {
 
           {/* Desktop links */}
           <div style={{ display:'flex', alignItems:'center', gap:8 }} className="desktop-nav">
-            {navLinks.map(({ href, label }) => (
+            {navLinks.map(({ href, label, hasDot }) => (
               <Link key={href} href={href} style={{
                 padding:'8px 18px', borderRadius:'var(--radius-full)',
                 fontWeight: 500, fontSize:'0.9375rem',
                 color: pathname === href ? 'var(--primary)' : 'var(--text-secondary)',
                 background: pathname === href ? 'var(--terracotta-50)' : 'transparent',
                 transition: 'var(--transition)',
+                position: 'relative'
               }}
+              onClick={() => { if(hasDot) setHasNewMessages(false); }}
               onMouseEnter={e => { if(pathname !== href) { e.target.style.color='var(--text-primary)'; e.target.style.background='var(--cream-200)'; }}}
               onMouseLeave={e => { if(pathname !== href) { e.target.style.color='var(--text-secondary)'; e.target.style.background='transparent'; }}}
-              >{label}</Link>
+              >
+                {label}
+                {hasDot && <span style={{ position:'absolute', top:6, right:10, width:6, height:6, background:'var(--primary)', borderRadius:'50%', border:'1px solid white' }}></span>}
+              </Link>
             ))}
           </div>
 

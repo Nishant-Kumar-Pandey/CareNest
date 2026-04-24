@@ -70,14 +70,14 @@ export default function PatientDashboard() {
   };
 
   const handleCancelBooking = async () => {
-    if (!cancelModal.reason.trim()) return alert('Cancellation reason is required.');
+    if (!cancelModal.reason.trim()) return toast.error('Cancellation reason is required.');
     try {
       setSubmittingId('cancel');
       await api.bookings.updateStatus(cancelModal.bookingId, 'cancelled', { cancelReason: cancelModal.reason });
       setCancelModal({ isOpen: false, bookingId: null, reason: '' });
       fetchBookings();
     } catch (err) {
-      alert(err.message);
+      toast.error(err.message);
     } finally {
       setSubmittingId(null);
     }
@@ -152,7 +152,7 @@ export default function PatientDashboard() {
       const res = await api.careNotes.list(bookingId);
       setCareNoteModal({ isOpen: true, data: res.data, loading: false });
     } catch (err) {
-      alert(err.message);
+      toast.error(err.message);
       setCareNoteModal({ isOpen: false, data: null, loading: false });
     }
   };
