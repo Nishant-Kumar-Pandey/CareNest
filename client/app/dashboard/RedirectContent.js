@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { api } from '../../lib/api';
+import toast from 'react-hot-toast';
 
 export default function RedirectContent() {
   const router = useRouter();
@@ -41,6 +42,7 @@ export default function RedirectContent() {
         }
       } catch (err) {
         console.error('State check failed:', err);
+        toast.error('Session verification failed: ' + err.message);
         router.replace('/auth');
       } finally {
         setLoading(false);
