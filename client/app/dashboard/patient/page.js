@@ -1,4 +1,5 @@
 'use client';
+export const dynamic = 'force-dynamic';
 import { useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { api } from '../../../lib/api';
@@ -7,7 +8,7 @@ import Footer from '../../../components/Footer';
 import ChatDrawer from '../../../components/ChatDrawer';
 import toast from 'react-hot-toast';
 
-export default function PatientDashboard() {
+function PatientDashboardContent() {
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('upcoming');
@@ -508,5 +509,13 @@ export default function PatientDashboard() {
       />
       <Footer />
     </>
+  );
+}
+
+export default function PatientDashboard() {
+  return (
+    <Suspense fallback={<div style={{ display: 'flex', justifyContent: 'center', padding: '100px 0' }}><div className="spinner"></div></div>}>
+      <PatientDashboardContent />
+    </Suspense>
   );
 }

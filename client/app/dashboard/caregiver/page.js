@@ -1,5 +1,6 @@
 'use client';
-import { useState, useEffect } from 'react';
+export const dynamic = 'force-dynamic';
+import { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { api } from '../../../lib/api';
 import Navbar from '../../../components/Navbar';
@@ -7,7 +8,7 @@ import Footer from '../../../components/Footer';
 import ChatDrawer from '../../../components/ChatDrawer';
 import toast from 'react-hot-toast';
 
-export default function CaregiverDashboard() {
+function CaregiverDashboardContent() {
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('pending');
@@ -464,5 +465,13 @@ export default function CaregiverDashboard() {
       />
       <Footer />
     </>
+  );
+}
+
+export default function CaregiverDashboard() {
+  return (
+    <Suspense fallback={<div style={{ display: 'flex', justifyContent: 'center', padding: '100px 0' }}><div className="spinner"></div></div>}>
+      <CaregiverDashboardContent />
+    </Suspense>
   );
 }
