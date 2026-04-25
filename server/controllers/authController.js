@@ -63,7 +63,8 @@ exports.register = async (req, res) => {
 
     res.status(201).json({ success: true, token, user });
   } catch (err) {
-    res.status(500).json({ success: false, message: err.message });
+    console.error('REGISTRATION ERROR:', err);
+    res.status(500).json({ success: false, message: err.message || 'Server Registration Error' });
   }
 };
 
