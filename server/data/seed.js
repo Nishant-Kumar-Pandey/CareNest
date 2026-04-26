@@ -12,6 +12,8 @@ const CareNote = require('../models/CareNote');
 const Review = require('../models/Review');
 
 const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/elderly-care';
+const SEED_PASSWORD = process.env.SEED_PASSWORD || 'CareNest2026!';
+const ADMIN_SEED_PASSWORD = process.env.ADMIN_SEED_PASSWORD || 'Admin@CareNest2026!';
 
 const services = [
   { name: 'Personal Care & Hygiene', slug: 'personal-care', description: 'Assistance with bathing, grooming, dressing, and personal hygiene to maintain dignity and comfort.', category: 'Personal Care', basePrice: 22, duration: 'Hourly', icon: '🧼', features: ['Bathing assistance', 'Grooming & dressing', 'Oral hygiene', 'Skin care'] },
@@ -50,13 +52,13 @@ async function seed() {
     // Seed caregivers
     for (const cg of caregiverProfiles) {
       const { name, email, phone, specializations, bio, experience, hourlyRate, languages, rating, totalReviews, isVerified, backgroundCheck, profileComplete, location } = cg;
-      const user = await User.create({ name, email, password: 'Password123!', role: 'caregiver', phone });
+      const user = await User.create({ name, email, password: SEED_PASSWORD, role: 'caregiver', phone });
       await Caregiver.create({ user: user._id, bio, specializations, experience, hourlyRate, languages, rating, totalReviews, isVerified, backgroundCheck, profileComplete, location });
     }
     console.log(`✅ Seeded ${caregiverProfiles.length} caregivers`);
 
     // Seed a demo patient
-    const patientUser = await User.create({ name: 'Eleanor Whitfield', email: 'eleanor@demo.com', password: 'Password123!', role: 'patient', phone: '555-0200' });
+    const patientUser = await User.create({ name: 'Eleanor Whitfield', email: 'eleanor@demo.com', password: SEED_PASSWORD, role: 'patient', phone: '555-0200' });
     await Patient.create({
       user: patientUser._id,
       dateOfBirth: new Date('1945-04-12'),
@@ -65,17 +67,17 @@ async function seed() {
       medicalHistory: { conditions: ['Type 2 Diabetes', 'Mild Hypertension'], mobilityLevel: 'assisted', cognitionLevel: 'normal' },
       emergencyContact: { name: 'Thomas Whitfield', relationship: 'Son', phone: '555-0201' },
     });
-    console.log('✅ Seeded demo patient (email: eleanor@demo.com, password: Password123!)');
+    console.log(`✅ Seeded demo patient (email: eleanor@demo.com, password: ${SEED_PASSWORD})`);
 
     // Seed admin
-    await User.create({ name: 'Admin User', email: 'admin@care.com', password: 'Admin123!', role: 'admin' });
-    console.log('✅ Seeded admin (email: admin@care.com, password: Admin123!)');
+    await User.create({ name: 'Admin User', email: 'admin@care.com', password: ADMIN_SEED_PASSWORD, role: 'admin' });
+    console.log(`✅ Seeded admin (email: admin@care.com, password: ${ADMIN_SEED_PASSWORD})`);
 
     console.log('\n🎉 Database seeded successfully!\n');
     console.log('Demo credentials:');
-    console.log('  Patient:   eleanor@demo.com / Password123!');
-    console.log('  Caregiver: sarah@care.com   / Password123!');
-    console.log('  Admin:     admin@care.com    / Admin123!\n');
+    console.log(`  Patient:   eleanor@demo.com / ${SEED_PASSWORD}`);
+    console.log(`  Caregiver: sarah@care.com   / ${SEED_PASSWORD}`);
+    console.log(`  Admin:     admin@care.com    / ${ADMIN_SEED_PASSWORD}\n`);
 
     process.exit(0);
   } catch (err) {
