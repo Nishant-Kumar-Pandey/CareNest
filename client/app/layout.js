@@ -2,13 +2,16 @@ import { Toaster } from 'react-hot-toast';
 import './globals.css';
 
 export const metadata = {
-  title: { default: 'CareNest — Trusted Elderly Care & Nursing', template: '%s | CareNest' },
+  title: { default: 'CareNest — Trusted Elderly Care & Professional Nursing', template: '%s | CareNest' },
   description: 'Connect your loved ones with verified, compassionate caregivers. Professional elderly nursing and healthcare assistance, on your schedule.',
   keywords: ['elderly care', 'nursing', 'caregiver', 'home health aide', 'senior care', 'dementia care'],
   openGraph: {
     title: 'CareNest — Trusted Elderly Care & Nursing',
     description: 'Connect your loved ones with verified, compassionate caregivers.',
     type: 'website',
+  },
+  icons: {
+    icon: '/favicon.png',
   },
 };
 
