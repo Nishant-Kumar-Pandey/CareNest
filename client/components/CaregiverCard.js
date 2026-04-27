@@ -36,7 +36,7 @@ export default function CaregiverCard({ cg, view = 'grid' }) {
 
   if (view === 'list') {
     return (
-      <div className="card animate-fadeInUp" style={{ padding: 'var(--space-6)', display: 'flex', gap: 'var(--space-6)', alignItems: 'flex-start' }}>
+      <div className="card animate-fadeInUp" style={{ padding: 'var(--space-6)', display: 'flex', gap: 'var(--space-6)', alignItems: 'flex-start', flexWrap: 'wrap' }}>
         <div className="avatar" style={{ 
           width: 80, height: 80, fontSize: '1.5rem', flexShrink: 0, fontFamily: 'var(--font-serif)', position: 'relative',
           backgroundImage: cg.user.avatar ? `url(${cg.user.avatar})` : 'none',
@@ -49,19 +49,19 @@ export default function CaregiverCard({ cg, view = 'grid' }) {
           )}
         </div>
 
-        <div style={{ flex: 1, minWidth: 0 }}>
+        <div style={{ flex: '1 1 300px', minWidth: 0 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap', marginBottom: 'var(--space-2)' }}>
             <h3 style={{ fontSize: '1.25rem', margin: 0, color: 'var(--text-primary)', fontWeight: 700 }}>{cg.user.name}</h3>
             {cg.isVerified && <VerifiedBadge />}
             {cg.backgroundCheck && <span className="badge badge-warm" style={{ fontSize: '0.65rem' }}>🛡 Background Checked</span>}
           </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 'var(--space-3)' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 'var(--space-3)', flexWrap: 'wrap' }}>
             <Stars rating={cg.rating} />
             <span style={{ fontSize: '0.875rem', color: 'var(--text-secondary)', fontWeight: 600 }}>{cg.rating}</span>
             <span style={{ fontSize: '0.875rem', color: 'var(--text-muted)' }}>({cg.totalReviews} reviews)</span>
-            <span style={{ color: 'var(--border)' }}>·</span>
+            <span className="hide-mobile" style={{ color: 'var(--border)' }}>·</span>
             <span style={{ fontSize: '0.875rem', color: 'var(--text-muted)' }}>{cg.experience} yrs exp</span>
-            <span style={{ color: 'var(--border)' }}>·</span>
+            <span className="hide-mobile" style={{ color: 'var(--border)' }}>·</span>
             <span style={{ fontSize: '0.875rem', color: 'var(--text-muted)' }}>📍 {cg.location?.city}, {cg.location?.state}</span>
           </div>
           <p style={{ fontSize: '0.9375rem', color: 'var(--text-secondary)', lineHeight: 1.7, marginBottom: 'var(--space-4)', display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
@@ -71,13 +71,13 @@ export default function CaregiverCard({ cg, view = 'grid' }) {
             {cg.specializations.map(s => <span key={s} className="badge badge-terracotta" style={{ fontSize: '0.75rem', padding: '6px 12px' }}>{s}</span>)}
           </div>
         </div>
-        <div style={{ flexShrink: 0, textAlign: 'right', display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 'var(--space-4)' }}>
-          <div style={{ background: 'var(--cream-50)', padding: '12px', borderRadius: 'var(--radius-lg)', border: '1px solid var(--border)' }}>
+        <div style={{ flex: '1 1 200px', textAlign: 'right', display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 'var(--space-4)', marginTop: 'auto' }}>
+          <div style={{ background: 'var(--cream-50)', padding: '12px', borderRadius: 'var(--radius-lg)', border: '1px solid var(--border)', width: '100%', maxWidth: '200px' }}>
             <div style={{ fontFamily: 'var(--font-serif)', fontSize: '1.75rem', fontWeight: 700, color: 'var(--primary)', lineHeight: 1 }}>${cg.hourlyRate}</div>
             <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', textAlign: 'center', marginTop: '4px' }}>per hour</div>
           </div>
-          <Link href={`/book?caregiverId=${cg._id}&name=${encodeURIComponent(cg.user.name)}`} className="btn btn-primary" style={{ width: '100%' }}>Book Session</Link>
-          <Link href={`/caregivers/${cg._id}`} style={{ fontSize: '0.875rem', color: 'var(--text-muted)', textDecoration: 'none', fontWeight: 500 }}>View Full Profile</Link>
+          <Link href={`/book?caregiverId=${cg._id}&name=${encodeURIComponent(cg.user.name)}`} className="btn btn-primary" style={{ width: '100%', justifyContent: 'center' }}>Book Session</Link>
+          <Link href={`/caregivers/${cg._id}`} style={{ fontSize: '0.875rem', color: 'var(--text-muted)', textDecoration: 'none', fontWeight: 500, alignSelf: 'center' }}>View Full Profile</Link>
         </div>
       </div>
     );

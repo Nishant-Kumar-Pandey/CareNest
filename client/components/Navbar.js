@@ -242,7 +242,7 @@ export default function Navbar() {
                 <div style={{ position: 'relative' }}>
                   <button 
                     onClick={() => setShowNotifTray(!showNotifTray)} 
-                    style={{ background: 'none', border: 'none', cursor: 'pointer', position: 'relative', fontSize: '1.25rem', padding: '8px', marginRight: '8px', color: 'var(--text-primary)' }}
+                    style={{ background: 'none', border: 'none', cursor: 'pointer', position: 'relative', fontSize: '1.25rem', padding: '8px', color: 'var(--text-primary)' }}
                   >
                     🔔
                     {unreadNotifications > 0 && (
@@ -304,7 +304,7 @@ export default function Navbar() {
                     </div>
                   )}
                 </div>
-                <div style={{ display:'flex', alignItems:'center', gap:10, padding:'6px 14px', borderRadius:'var(--radius-full)', background:'var(--terracotta-50)', border:'1px solid var(--terracotta-200)' }}>
+                <div className="hide-mobile" style={{ display:'flex', alignItems:'center', gap:10, padding:'6px 14px', borderRadius:'var(--radius-full)', background:'var(--terracotta-50)', border:'1px solid var(--terracotta-200)' }}>
                   <div className="avatar" style={{ 
                     width:30, height:30, fontSize:'0.875rem', background:'var(--primary)', color:'#fff', border:'none',
                     backgroundImage: user.avatar ? `url(${user.avatar})` : 'none',
@@ -315,12 +315,12 @@ export default function Navbar() {
                   </div>
                   <span style={{ fontSize:'0.875rem', fontWeight:600, color:'var(--text-primary)' }}>{user.name?.split(' ')[0]}</span>
                 </div>
-                <button onClick={logout} className="btn btn-ghost btn-sm">Sign Out</button>
+                <button onClick={logout} className="btn btn-ghost btn-sm hide-tablet">Sign Out</button>
               </>
             ) : (
               <>
-                <Link href="/auth" className="btn btn-ghost btn-sm">Sign In</Link>
-                <Link href="/auth?mode=register" className="btn btn-primary btn-sm">Get Started</Link>
+                <Link href="/auth" className="btn btn-ghost btn-sm hide-mobile">Sign In</Link>
+                <Link href="/auth?mode=register" className="btn btn-primary btn-sm hide-mobile">Get Started</Link>
               </>
             )}
             {/* Mobile menu toggle */}
@@ -335,19 +335,48 @@ export default function Navbar() {
       <div className="mobile-menu" style={{
         position:'fixed', top:72, left:0, right:0, zIndex:999,
         background:'var(--warm-white)', borderBottom:'1px solid var(--border)',
-        padding:'var(--space-4)', display: menuOpen ? 'flex' : 'none',
+        padding:'var(--space-6) var(--space-4)', display: menuOpen ? 'flex' : 'none',
         flexDirection:'column', gap:'var(--space-2)',
         boxShadow:'var(--shadow-lg)',
+        maxHeight: 'calc(100vh - 72px)', overflowY: 'auto',
         animation: menuOpen ? 'fadeInUp 0.2s ease' : undefined,
       }}>
+        {user && (
+          <div style={{ display:'flex', alignItems:'center', gap:12, padding:'12px 20px', marginBottom:8, background:'var(--terracotta-50)', borderRadius:'var(--radius-md)' }}>
+             <div className="avatar" style={{ 
+                width:40, height:40, fontSize:'1rem', background:'var(--primary)', color:'#fff', border:'none',
+                backgroundImage: user.avatar ? `url(${user.avatar})` : 'none',
+                backgroundSize: 'cover',
+                backgroundPosition: 'center'
+              }}>
+                {!user.avatar && (user.name?.[0]?.toUpperCase())}
+              </div>
+              <div>
+                <p style={{ fontWeight:700, margin:0, color:'var(--text-primary)' }}>{user.name}</p>
+                <p style={{ fontSize:'0.75rem', color:'var(--text-muted)', margin:0, textTransform:'capitalize' }}>{user.role}</p>
+              </div>
+          </div>
+        )}
+        
         {navLinks.map(({ href, label }) => (
           <Link key={href} href={href} onClick={() => setMenuOpen(false)} style={{
             padding:'12px 20px', borderRadius:'var(--radius-md)',
-            fontWeight:500, color: pathname === href ? 'var(--primary)' : 'var(--text-primary)',
+            fontWeight:600, color: pathname === href ? 'var(--primary)' : 'var(--text-primary)',
             background: pathname === href ? 'var(--terracotta-50)' : 'transparent',
+            fontSize: '1rem'
           }}>{label}</Link>
         ))}
-        {!user && <Link href="/auth" className="btn btn-primary" style={{ marginTop:8 }} onClick={() => setMenuOpen(false)}>Get Started</Link>}
+        
+        <div style={{ marginTop: 12, display:'flex', flexDirection:'column', gap:8 }}>
+          {user ? (
+            <button onClick={logout} className="btn btn-outline" style={{ justifyContent:'center' }}>Sign Out</button>
+          ) : (
+            <>
+              <Link href="/auth" className="btn btn-ghost" style={{ justifyContent:'center' }} onClick={() => setMenuOpen(false)}>Sign In</Link>
+              <Link href="/auth?mode=register" className="btn btn-primary" style={{ justifyContent:'center' }} onClick={() => setMenuOpen(false)}>Get Started</Link>
+            </>
+          )}
+        </div>
       </div>
 
       <style jsx global>{`

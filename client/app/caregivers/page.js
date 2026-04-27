@@ -20,6 +20,7 @@ export default function CaregiversPage() {
   const [search, setSearch]         = useState('');
   const [filters, setFilters]       = useState({ specialization:'', minRate:'', maxRate:'', minRating:'', language:'' });
   const [sortBy, setSortBy]         = useState('rating');
+  const [showFilters, setShowFilters] = useState(false);
 
   const fetchCaregivers = useCallback(async () => {
     setLoading(true);
@@ -56,11 +57,11 @@ export default function CaregiversPage() {
       <Navbar />
 
       {/* Page Hero */}
-      <div style={{ background:'linear-gradient(135deg, var(--terracotta-50), var(--cream-100))', paddingTop:130, paddingBottom:'var(--space-12)', borderBottom:'1px solid var(--border)' }}>
+      <div style={{ background:'linear-gradient(135deg, var(--terracotta-50), var(--cream-100))', paddingTop:110, paddingBottom:'var(--space-10)', borderBottom:'1px solid var(--border)' }}>
         <div className="container">
           <div className="section-label">Our Care Team</div>
-          <h1 className="section-heading">Find Your Perfect Caregiver</h1>
-          <p className="section-subheading">Browse {caregivers.length} verified, background-checked caregivers. Filter by specialty, language, and budget to find the right fit.</p>
+          <h1 className="section-heading" style={{ fontSize: 'clamp(2rem, 5vw, 3rem)' }}>Find Your Perfect Caregiver</h1>
+          <p className="section-subheading">Browse {caregivers.length} verified, background-checked caregivers. Filter by specialty, language, and budget.</p>
 
           {/* Search bar */}
           <div style={{ marginTop:'var(--space-8)', display:'flex', gap:'var(--space-3)', maxWidth:640, flexWrap:'wrap' }}>
@@ -79,11 +80,23 @@ export default function CaregiversPage() {
         </div>
       </div>
 
-      <div className="container" style={{ paddingBlock:'var(--space-10)' }}>
-        <div style={{ display:'grid', gridTemplateColumns:'260px 1fr', gap:'var(--space-8)', alignItems:'start' }}>
+      <div className="container" style={{ paddingBlock:'var(--space-8)' }}>
+        <div className="caregivers-layout" style={{ alignItems:'start' }}>
+          
+          <button className="btn btn-outline show-mobile" 
+            onClick={() => setShowFilters(!showFilters)}
+            style={{ width:'100%', marginBottom:'var(--space-4)', justifyContent:'center' }}
+          >
+            {showFilters ? '✕ Close Filters' : '🔍 Filter Caregivers'}
+          </button>
 
           {/* ── FILTERS SIDEBAR ── */}
-          <aside style={{ background:'var(--warm-white)', borderRadius:'var(--radius-lg)', border:'1px solid var(--border)', padding:'var(--space-6)', position:'sticky', top:88 }}>
+          <aside style={{ 
+            background:'var(--warm-white)', borderRadius:'var(--radius-lg)', 
+            border:'1px solid var(--border)', padding:'var(--space-6)', 
+            position:'sticky', top:88,
+            display: showFilters ? 'block' : undefined,
+          }} className={showFilters ? '' : 'hide-mobile'}>
             <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:'var(--space-5)' }}>
               <h3 style={{ fontSize:'1rem', margin:0 }}>Filters</h3>
               <button onClick={clearFilters} style={{ fontSize:'0.8125rem', color:'var(--primary)', background:'none', border:'none', fontWeight:600, cursor:'pointer' }}>Clear all</button>
@@ -181,7 +194,7 @@ export default function CaregiversPage() {
                 <div className="spinner" />
               </div>
             ) : (
-              <div style={view === 'grid' ? { display:'grid', gridTemplateColumns:'repeat(auto-fill, minmax(280px, 1fr))', gap:'var(--space-6)' } : { display:'flex', flexDirection:'column', gap:'var(--space-4)' }}>
+              <div style={view === 'grid' ? { display:'grid', gridTemplateColumns:'repeat(auto-fill, minmax(min(280px, 100%), 1fr))', gap:'var(--space-6)' } : { display:'flex', flexDirection:'column', gap:'var(--space-4)' }}>
                 {sorted.map(cg => <CaregiverCard key={cg._id} cg={cg} view={view} />)}
               </div>
             )}

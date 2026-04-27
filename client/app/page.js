@@ -95,11 +95,11 @@ export default function HomePage() {
         <div style={{ position:'absolute', bottom:'-10%', left:'-5%', width:400, height:400, borderRadius:'50%', background:'radial-gradient(circle, rgba(77,132,82,0.10) 0%, transparent 70%)', pointerEvents:'none' }} />
 
         <div className="container">
-          <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:'var(--space-16)', alignItems:'center' }}>
+          <div className="grid-responsive-2" style={{ alignItems:'center' }}>
             {/* Left — copy */}
             <div className="animate-fadeInUp">
               <div className="section-label" style={{ marginBottom:'var(--space-5)' }}>Trusted Senior Care</div>
-              <h1 style={{ fontFamily:'var(--font-serif)', fontSize:'clamp(2.5rem, 5vw, 3.75rem)', lineHeight:1.15, marginBottom:'var(--space-6)', color:'var(--text-primary)' }}>
+              <h1 style={{ fontFamily:'var(--font-serif)', fontSize:'clamp(2.25rem, 5vw, 3.75rem)', lineHeight:1.15, marginBottom:'var(--space-6)', color:'var(--text-primary)' }}>
                 Care That Feels Like{' '}
                 <span style={{ color:'var(--primary)', fontStyle:'italic' }}>Family</span>
               </h1>
@@ -125,7 +125,7 @@ export default function HomePage() {
             </div>
 
             {/* Right — floating cards */}
-            <div style={{ position:'relative', minHeight:480, display:'flex', alignItems:'center', justifyContent:'center' }} className="animate-scaleIn">
+            <div style={{ position:'relative', minHeight:400, display:'flex', alignItems:'center', justifyContent:'center', marginTop: 'var(--space-8)' }} className="animate-scaleIn hide-mobile">
               {/* Main feature card */}
               <div style={{
                 background:'var(--warm-white)', borderRadius:'var(--radius-xl)',
@@ -159,7 +159,7 @@ export default function HomePage() {
               </div>
 
               {/* Floating badge */}
-              <div style={{ position:'absolute', top:'10%', right:'-5%', background:'var(--primary)', color:'#fff', borderRadius:'var(--radius-md)', padding:'var(--space-3) var(--space-4)', boxShadow:'var(--shadow-lg)', animation:'float 5s ease-in-out infinite 1s' }}>
+              <div style={{ position:'absolute', top:'5%', right:'-2%', background:'var(--primary)', color:'#fff', borderRadius:'var(--radius-md)', padding:'var(--space-3) var(--space-4)', boxShadow:'var(--shadow-lg)', animation:'float 5s ease-in-out infinite 1s', zIndex: 2 }}>
                 <div style={{ fontSize:'1.25rem', fontWeight:700, fontFamily:'var(--font-serif)' }}>4.9 ★</div>
                 <div style={{ fontSize:'0.75rem', opacity:0.9 }}>Avg Rating</div>
               </div>
