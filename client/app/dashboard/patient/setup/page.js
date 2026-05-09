@@ -88,6 +88,7 @@ export default function PatientSetup() {
       conditions: formData.conditions ? formData.conditions.split(',').map(s => s.trim()) : [],
       allergies: formData.allergies ? formData.allergies.split(',').map(s => s.trim()) : [],
       careNeeds: formData.careNeeds ? formData.careNeeds.split(',').map(s => s.trim()) : [],
+      currentMedications: formData.currentMedications ? formData.currentMedications.split(',').map(s => s.trim()) : [],
     };
 
     try {

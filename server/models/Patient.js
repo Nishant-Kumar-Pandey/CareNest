@@ -10,7 +10,7 @@ const patientSchema = new mongoose.Schema({
   medicalHistory: {
     conditions: [String],      // e.g. ['Diabetes Type 2', 'Hypertension']
     allergies: [String],
-    currentMedications: [{ name: String, dosage: String, frequency: String }],
+    currentMedications: [String],
     mobilityLevel: { type: String, enum: ['independent', 'assisted', 'wheelchair', 'bedridden'] },
     cognitionLevel: { type: String, enum: ['normal', 'mild_impairment', 'moderate_impairment', 'severe_impairment'] },
   },
