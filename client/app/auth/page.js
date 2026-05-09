@@ -118,7 +118,7 @@ function AuthContent() {
               {(mode === 'login' || mode === 'register' || mode === 'forgot_password' || mode === 'reset_password' || mode === 'verify') && (
                 <div className="form-group">
                   <label className="form-label">Email Address</label>
-                  <input type="email" value={form.email} onChange={e => setForm({...form, email:e.target.value})} className="form-input" placeholder="you@example.com" required disabled={mode === 'verify' || mode === 'reset_password'} />
+                  <input type="email" value={form.email} onChange={e => setForm({...form, email:e.target.value})} className="form-input" placeholder="you@example.com" required />
                 </div>
               )}
 
