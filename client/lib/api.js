@@ -35,6 +35,7 @@ export const api = {
     register: (body) => request('/auth/register', { method: 'POST', body: JSON.stringify(body) }),
     me: () => request('/auth/me'),
     verifyEmail: (body) => request('/auth/verify-email', { method: 'POST', body: JSON.stringify(body) }),
+    resendVerification: (body) => request('/auth/resend-verification', { method: 'POST', body: JSON.stringify(body) }),
     forgotPassword: (body) => request('/auth/forgot-password', { method: 'POST', body: JSON.stringify(body) }),
     resetPassword: (body) => request('/auth/reset-password', { method: 'POST', body: JSON.stringify(body) }),
     uploadAvatar: (formData) => request('/auth/upload-avatar', { method: 'POST', body: formData }),

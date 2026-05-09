@@ -276,3 +276,32 @@ exports.uploadAvatar = async (req, res) => {
     res.status(500).json({ success: false, message: err.message });
   }
 };
+
+// @desc   Resend Verification OTP
+// @route  POST /api/auth/resend-verification
+// @access Public
+exports.resendVerification = async (req, res) => {
+  try {
+    const { email } = req.body;
+    const user = await User.findOne({ email });
+    if (!user) return res.status(404).json({ success: false, message: 'User not found' });
+    if (user.isEmailVerified) return res.status(400).json({ success: false, message: 'Email already verified' });
+
+    const verificationOtp = otpGenerator.generate(6, { digits: true, upperCaseAlphabets: false, specialChars: false, lowerCaseAlphabets: false });
+    const hashedVerificationOtp = crypto.createHash('sha256').update(verificationOtp).digest('hex');
+    
+    user.verificationOtp = hashedVerificationOtp;
+    user.verificationOtpExpire = Date.now() + 24 * 60 * 60 * 1000;
+    await user.save({ validateBeforeSave: false });
+
+    await sendEmail({
+      to: user.email,
+      subject: 'Verify Your CareNest Account',
+      html: templates.verificationEmail(user.name, verificationOtp)
+    });
+
+    res.status(200).json({ success: true, message: 'Verification OTP sent' });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+};

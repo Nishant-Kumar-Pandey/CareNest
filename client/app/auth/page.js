@@ -14,6 +14,26 @@ function AuthContent() {
   const [form, setForm] = useState({ name:'', email:'', password:'', role:'patient', phone:'', otp:'' });
   const [error, setError]     = useState('');
   const [loading, setLoading] = useState(false);
+  const [otpSent, setOtpSent] = useState(false);
+
+  useEffect(() => {
+    if (mode === 'verify') {
+      let emailToUse = sessionStorage.getItem('registeredEmail');
+      
+      if (!emailToUse && typeof window !== 'undefined') {
+        try {
+          const userObj = JSON.parse(localStorage.getItem('user'));
+          if (userObj && userObj.email) {
+            emailToUse = userObj.email;
+          }
+        } catch (e) {}
+      }
+
+      if (emailToUse && !form.email) {
+        setForm(f => ({...f, email: emailToUse}));
+      }
+    }
+  }, [mode]);
 
   const set = (k, v) => setForm(f => ({...f, [k]: v}));
 
@@ -38,9 +58,18 @@ function AuthContent() {
       }
 
       if (mode === 'verify') {
+        if (!otpSent) {
+          await api.auth.resendVerification({ email: form.email });
+          toast.success('OTP sent to your email!');
+          setOtpSent(true);
+          setLoading(false);
+          return;
+        }
+
         const res = await api.auth.verifyEmail({ email: form.email, otp: form.otp });
         localStorage.setItem('token', res.token);
         localStorage.setItem('user', JSON.stringify(res.user));
+        sessionStorage.removeItem('registeredEmail');
         toast.success('Email verified successfully!');
         router.push('/dashboard');
         return;
@@ -51,8 +80,10 @@ function AuthContent() {
         const res = mode === 'login' ? await api.auth.login(payload) : await api.auth.register(payload);
         
         if (mode === 'register') {
-          toast.success('Account created! Please verify your email.');
+          sessionStorage.setItem('registeredEmail', form.email);
+          toast.success('Account created! Please request an OTP to verify your email.');
           setMode('verify');
+          setOtpSent(false);
         } else {
           localStorage.setItem('token', res.token);
           localStorage.setItem('user', JSON.stringify(res.user));
@@ -87,7 +118,7 @@ function AuthContent() {
               {mode === 'login' ? 'Welcome Back' : mode === 'register' ? 'Join CareNest' : mode === 'forgot_password' ? 'Reset Password' : mode === 'verify' ? 'Verify Email' : 'New Password'}
             </h1>
             <p style={{ color:'var(--text-secondary)', fontSize:'0.9375rem' }}>
-              {mode === 'login' ? 'Sign in to manage your care' : mode === 'register' ? 'Start your care journey today' : mode === 'verify' ? `Enter the code sent to ${form.email}` : 'Enter your details below'}
+              {mode === 'login' ? 'Sign in to manage your care' : mode === 'register' ? 'Start your care journey today' : mode === 'verify' ? (otpSent ? `Enter the code sent to ${form.email}` : `Verify the email: ${form.email}`) : 'Enter your details below'}
             </p>
           </div>
 
@@ -118,21 +149,21 @@ function AuthContent() {
               {(mode === 'login' || mode === 'register' || mode === 'forgot_password' || mode === 'reset_password' || mode === 'verify') && (
                 <div className="form-group">
                   <label className="form-label">Email Address</label>
-                  <input type="email" value={form.email} onChange={e => setForm({...form, email:e.target.value})} className="form-input" placeholder="you@example.com" required />
+                  <input type="email" value={form.email} onChange={e => setForm({...form, email:e.target.value})} className="form-input" placeholder="you@example.com" required readOnly={mode === 'verify'} />
                 </div>
               )}
 
-              {(mode === 'reset_password' || mode === 'verify') && (
+              {(mode === 'reset_password' || (mode === 'verify' && otpSent)) && (
                 <div className="form-group" style={{ textAlign: 'center' }}>
                   <label className="form-label" style={{ display: 'block', marginBottom: '15px' }}>{mode === 'verify' ? 'Verification Code' : '6-Digit OTP'}</label>
                   <OtpInput length={6} onComplete={(val) => set('otp', val)} />
                   <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginTop: '12px' }}>
-                    Didn't receive a code? <button type="button" className="btn-link" style={{ fontSize: '0.8rem' }}>Resend</button>
+                    Didn't receive a code? <button type="button" className="btn-link" onClick={() => api.auth.resendVerification({ email: form.email }).then(() => toast.success('OTP resent!'))} style={{ fontSize: '0.8rem' }}>Resend</button>
                   </p>
                 </div>
               )}
 
-              {mode !== 'forgot_password' && (
+              {mode !== 'forgot_password' && mode !== 'verify' && (
                 <div className="form-group">
                   <label className="form-label">{mode === 'reset_password' ? 'New Password' : 'Password'}</label>
                   <input type="password" value={form.password} onChange={e => setForm({...form, password:e.target.value})} className="form-input" placeholder="••••••••" required minLength="6" />
@@ -163,7 +194,7 @@ function AuthContent() {
                   mode === 'login' ? 'Sign In' : 
                   mode === 'register' ? 'Create Account' : 
                   mode === 'forgot_password' ? 'Send OTP' : 
-                  mode === 'verify' ? 'Verify OTP' :
+                  mode === 'verify' ? (otpSent ? 'Verify OTP' : 'Send OTP') :
                   'Reset Password'
                 )}
               </button>
