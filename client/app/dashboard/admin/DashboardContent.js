@@ -74,20 +74,20 @@ export default function AdminDashboardContent() {
             </div>
           </header>
 
-          {/* Core Metrics Grid */}
+          {/* Advanced Analytics Grid (KPIs) */}
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 'var(--space-6)', marginBottom: 'var(--space-6)' }}>
-            <MetricCard title="Total Patients" value={metrics?.totalPatients || 0} icon="👨‍🦳" color="var(--terracotta-500)" loading={loading} />
-            <MetricCard title="Active Caregivers" value={metrics?.totalCaregivers || 0} icon="👩‍⚕️" color="var(--sage-600)" loading={loading} />
-            <MetricCard title="Total Volume" value={metrics?.totalBookings || 0} icon="📊" color="var(--primary)" loading={loading} />
-            <MetricCard title="Est. Revenue" value={`$${metrics?.totalRevenue?.toLocaleString() || 0}`} icon="💰" color="var(--brown-600)" loading={loading} />
-          </div>
-
-          {/* Advanced Analytics Grid */}
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 'var(--space-6)', marginBottom: 'var(--space-10)' }}>
             <MetricCard title="Satisfaction" value={`${metrics?.avgSatisfaction || 0}/5`} icon="⭐" color="#f59e0b" loading={loading} />
             <MetricCard title="Completion Rate" value={`${metrics?.completionRate || 0}%`} icon="✅" color="#10b981" loading={loading} />
             <MetricCard title="Avg Response" value={`${metrics?.avgResponseTime || 0}m`} icon="⏱️" color="#3b82f6" loading={loading} />
             <MetricCard title="Active Users" value={metrics?.activeUsers || 0} icon="🔥" color="#ef4444" loading={loading} />
+          </div>
+
+          {/* Core Metrics Grid */}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 'var(--space-6)', marginBottom: 'var(--space-10)' }}>
+            <MetricCard title="Total Patients" value={metrics?.totalPatients || 0} icon="👨‍🦳" color="var(--terracotta-500)" loading={loading} />
+            <MetricCard title="Active Caregivers" value={metrics?.totalCaregivers || 0} icon="👩‍⚕️" color="var(--sage-600)" loading={loading} />
+            <MetricCard title="Total Volume" value={metrics?.totalBookings || 0} icon="📊" color="var(--primary)" loading={loading} />
+            <MetricCard title="Est. Revenue" value={`$${metrics?.totalRevenue?.toLocaleString() || 0}`} icon="💰" color="var(--brown-600)" loading={loading} />
           </div>
 
           {/* Mission Control Split View */}

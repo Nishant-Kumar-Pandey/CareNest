@@ -95,61 +95,51 @@ exports.getSystemMetrics = async (req, res) => {
     // 1. Check Redis Cache
     const cacheKey = 'admin:metrics';
     const cachedData = await getCache(cacheKey);
-    if (cachedData) {
+    // If the old cache exists but doesn't have the new KPIs, force a refresh
+    if (cachedData && cachedData.avgSatisfaction !== undefined) {
       return res.json({ success: true, data: cachedData, cached: true });
     }
 
     // 2. Fetch fresh metrics
+    const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+    
     const [
-      totalUsers,
-      totalCaregivers,
-      totalPatients,
-      totalBookings,
-      pendingCaregivers,
-      reviews,
-      completedBookings,
-      totalConfirmedTime
+      counts,
+      reviewStats,
+      responseStats,
+      revenueStats,
+      activeUsers
     ] = await Promise.all([
-      User.countDocuments(),
-      Caregiver.countDocuments({ isVerified: true }),
-      Patient.countDocuments(),
-      Booking.countDocuments(),
-      Caregiver.countDocuments({ isVerified: false, profileComplete: true }),
-      Review.find({}, 'rating'),
-      Booking.countDocuments({ status: 'completed' }),
+      Promise.all([
+        User.countDocuments(),
+        Caregiver.countDocuments({ isVerified: true }),
+        Patient.countDocuments(),
+        Booking.countDocuments(),
+        Caregiver.countDocuments({ isVerified: false, profileComplete: true }),
+        Booking.countDocuments({ status: 'completed' })
+      ]),
+      Review.aggregate([{ $group: { _id: null, avg: { $avg: '$rating' }, count: { $sum: 1 } } }]),
       Booking.aggregate([
         { $match: { confirmedAt: { $exists: true } } },
-        { $group: { _id: null, totalResponseTime: { $sum: { $subtract: ["$confirmedAt", "$createdAt"] } }, count: { $sum: 1 } } }
-      ])
+        { $group: { _id: null, totalTime: { $sum: { $subtract: ["$confirmedAt", "$createdAt"] } }, count: { $sum: 1 } } }
+      ]),
+      Booking.aggregate([
+        { $match: { paymentStatus: 'paid' } },
+        { $group: { _id: null, total: { $sum: '$totalCost' } } }
+      ]),
+      User.countDocuments({ lastLogin: { $gte: thirtyDaysAgo } })
     ]);
 
-    // Aggregate monthly revenue or total revenue
-    const revenueResult = await Booking.aggregate([
-      { $match: { paymentStatus: 'paid' } },
-      { $group: { _id: null, total: { $sum: '$totalCost' } } }
-    ]);
-    const totalRevenue = revenueResult.length > 0 ? revenueResult[0].total : 0;
-
-    // Calculate Satisfaction Score
-    const avgSatisfaction = reviews.length > 0 
-      ? (reviews.reduce((acc, r) => acc + r.rating, 0) / reviews.length).toFixed(1) 
-      : 5.0; // Default if no reviews
-
-    // Calculate Booking Completion Rate
-    const completionRate = totalBookings > 0 
-      ? ((completedBookings / totalBookings) * 100).toFixed(1) 
-      : 100;
-
-    // Calculate Avg Response Time (minutes)
+    const [totalUsers, totalCaregivers, totalPatients, totalBookings, pendingCaregivers, completedBookings] = counts;
+    
+    const avgSatisfaction = reviewStats.length > 0 ? parseFloat(reviewStats[0].avg.toFixed(1)) : 5.0;
+    const totalRevenue = revenueStats.length > 0 ? parseFloat(revenueStats[0].total.toFixed(2)) : 0;
+    const completionRate = totalBookings > 0 ? parseFloat(((completedBookings / totalBookings) * 100).toFixed(1)) : 100;
+    
     let avgResponseTime = 0;
-    if (totalConfirmedTime.length > 0 && totalConfirmedTime[0].count > 0) {
-      avgResponseTime = Math.round((totalConfirmedTime[0].totalResponseTime / totalConfirmedTime[0].count) / 60000); 
+    if (responseStats.length > 0 && responseStats[0].count > 0) {
+      avgResponseTime = Math.round((responseStats[0].totalTime / responseStats[0].count) / 60000); 
     }
-
-    // MAU (Monthly Active Users) - Last 30 days
-    const thirtyDaysAgo = new Date();
-    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-    const activeUsers = await User.countDocuments({ lastLogin: { $gte: thirtyDaysAgo } });
 
     const data = {
       totalUsers,
@@ -157,9 +147,9 @@ exports.getSystemMetrics = async (req, res) => {
       totalPatients,
       totalBookings,
       pendingCaregivers,
-      totalRevenue: parseFloat(totalRevenue.toFixed(2)),
-      avgSatisfaction: parseFloat(avgSatisfaction),
-      completionRate: parseFloat(completionRate),
+      totalRevenue,
+      avgSatisfaction,
+      completionRate,
       avgResponseTime,
       activeUsers
     };
