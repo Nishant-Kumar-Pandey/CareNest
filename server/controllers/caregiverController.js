@@ -19,7 +19,13 @@ exports.getCaregivers = async (req, res) => {
       if (maxRate) query.hourlyRate.$lte = Number(maxRate);
     }
     if (minRating) query.rating = { $gte: Number(minRating) };
-    if (city) query['location.city'] = new RegExp(city, 'i');
+    if (city) {
+      const cityRegex = new RegExp(city, 'i');
+      query.$or = [
+        { 'location.city': cityRegex },
+        { 'serviceAreas.city': cityRegex }
+      ];
+    }
 
     let dbQuery = Caregiver.find(query)
       .populate('user', 'name email phone avatar')
@@ -93,12 +99,12 @@ exports.getMyCaregiverProfile = async (req, res) => {
 // @route  POST /api/caregivers/me
 exports.createOrUpdateMyProfile = async (req, res) => {
   try {
-    const { bio, specializations, experience, certifications, hourlyRate, languages, availability, location } = req.body;
+    const { bio, specializations, experience, certifications, hourlyRate, languages, availability, location, serviceAreas } = req.body;
     
     // The verify firewall ensures new caregivers stay false until Admin approves
     const caregiverFields = {
       user: req.user._id,
-      bio, experience, hourlyRate, location,
+      bio, experience, hourlyRate, location, serviceAreas,
       profileComplete: true 
     };
     

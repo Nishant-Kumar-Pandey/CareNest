@@ -22,6 +22,7 @@ const caregiverSchema = new mongoose.Schema({
     sunday:    { available: Boolean, hours: String },
   },
   location: { city: String, state: String, zipCode: String },
+  serviceAreas: [{ city: String, state: String, zipCode: String }],
   rating: { type: Number, default: 0, min: 0, max: 5 },
   totalReviews: { type: Number, default: 0 },
   totalBookings: { type: Number, default: 0 },

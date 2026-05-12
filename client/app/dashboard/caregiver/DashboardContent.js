@@ -195,9 +195,14 @@ export default function CaregiverDashboardContent() {
                 <span style={{ fontSize: '1rem' }}>🛡️</span> Verified Professional
               </div>
             )}
-            <button onClick={() => router.push('/dashboard/caregiver/setup')} className="btn btn-outline" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <span>Edit Profile ⚙</span>
-            </button>
+            <div style={{ display: 'flex', gap: '12px' }}>
+              <button onClick={() => router.push('/dashboard/caregiver/availability')} className="btn btn-outline" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <span>Schedule & Areas 🗓️</span>
+              </button>
+              <button onClick={() => router.push('/dashboard/caregiver/setup')} className="btn btn-outline" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <span>Edit Profile ⚙</span>
+              </button>
+            </div>
           </div>
         </div>
 
