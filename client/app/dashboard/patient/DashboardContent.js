@@ -6,6 +6,8 @@ import { api } from '../../../lib/api';
 import Navbar from '../../../components/Navbar';
 import Footer from '../../../components/Footer';
 import ChatDrawer from '../../../components/ChatDrawer';
+import StatusTimeline from '../../../components/StatusTimeline';
+import { socket } from '../../../lib/socket';
 import toast from 'react-hot-toast';
 
 export default function PatientDashboardContent() {
@@ -43,12 +45,28 @@ export default function PatientDashboardContent() {
     if (stored) setCurrentUser(JSON.parse(stored));
     fetchBookings();
 
+    // Socket Logic
+    if (socket) {
+      socket.connect();
+      socket.on('booking_status_updated', (data) => {
+        toast.success(`Booking status updated to ${data.status.replace('_', ' ')}!`);
+        fetchBookings();
+      });
+    }
+    
     // Auto-open chat if deep-linked
     const openChatId = searchParams.get('openChat');
     if (openChatId) {
       setChatBookingId(openChatId);
       setChatOpen(true);
     }
+
+    return () => {
+      if (socket) {
+        socket.off('booking_status_updated');
+        socket.disconnect();
+      }
+    };
   }, [searchParams]);
 
   const fetchBookings = async () => {
@@ -215,6 +233,32 @@ export default function PatientDashboardContent() {
             <button onClick={() => setActiveTab('upcoming')} className="btn btn-primary btn-sm">View Invoices</button>
           </div>
         )}
+
+        {/* Live Session Tracker Hero */}
+        {active.length > 0 && (
+          <div className="card animate-fadeInDown" style={{ 
+            padding: 'var(--space-8)', background: 'white', border: '2px solid var(--primary)', 
+            marginBottom: 'var(--space-10)', boxShadow: 'var(--shadow-lg)' 
+          }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'var(--space-6)' }}>
+              <div>
+                <h2 style={{ fontFamily: 'var(--font-serif)', margin: 0 }}>Active Session Live Tracking</h2>
+                <p style={{ color: 'var(--text-secondary)', margin: '4px 0 0' }}>Your caregiver {active[0].caregiver?.user?.name} is currently with the patient.</p>
+              </div>
+              <div style={{ display: 'flex', gap: '8px' }}>
+                <span className="badge badge-sage" style={{ animation: 'pulse 2s infinite' }}>● Live Now</span>
+              </div>
+            </div>
+            
+            <StatusTimeline status={active[0].status} />
+            
+            <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 'var(--space-4)' }}>
+              <button className="btn btn-primary btn-sm" onClick={() => { setChatBookingId(active[0]._id); setChatOpen(true); }}>
+                💬 Message Live Caregiver
+              </button>
+            </div>
+          </div>
+        )}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 'var(--space-8)' }}>
           <div>
             <h1 style={{ fontFamily: 'var(--font-serif)', color: 'var(--text-primary)', marginBottom: 'var(--space-2)' }}>Patient Dashboard</h1>
@@ -303,6 +347,13 @@ export default function PatientDashboardContent() {
                   {booking.status}
                 </div>
               </div>
+
+              {/* Visual Timeline */}
+              {['pending', 'confirmed', 'in_progress', 'awaiting_payment'].includes(booking.status) && (
+                <div style={{ padding: '0 var(--space-4)' }}>
+                  <StatusTimeline status={booking.status} />
+                </div>
+              )}
 
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 'var(--space-4)', background: 'var(--cream-100)', padding: 'var(--space-4)', borderRadius: 'var(--radius-md)' }}>
                 <div>

@@ -180,6 +180,15 @@ exports.updateStatus = async (req, res) => {
         emailHtml: `<h2>Update on your booking</h2><p>Your booking status has been updated to <strong>${status}</strong> by ${req.user.name}. Please check your dashboard for details.</p>`
       });
 
+      // Trigger Socket Update
+      try {
+        const socketIO = require('../socket').getIO();
+        socketIO.to(booking._id.toString()).emit('booking_status_updated', {
+          bookingId: booking._id,
+          status: status
+        });
+      } catch (e) {}
+
     res.json({ success: true, data: booking });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
