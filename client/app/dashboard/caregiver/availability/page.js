@@ -19,7 +19,16 @@ export default function AvailabilityPage() {
   const fetchProfile = async () => {
     try {
       const res = await api.caregivers.me();
-      setProfile(res.data);
+      const data = res.data;
+      
+      // Ensure availability structure exists for older documents
+      const days = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
+      if (!data.availability) data.availability = {};
+      days.forEach(day => {
+        if (!data.availability[day]) data.availability[day] = { available: false, hours: '' };
+      });
+      
+      setProfile(data);
     } catch (err) {
       toast.error('Failed to load profile');
     } finally {
