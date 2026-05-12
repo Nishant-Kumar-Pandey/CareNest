@@ -75,11 +75,19 @@ export default function AdminDashboardContent() {
           </header>
 
           {/* Core Metrics Grid */}
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 'var(--space-6)', marginBottom: 'var(--space-10)' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 'var(--space-6)', marginBottom: 'var(--space-6)' }}>
             <MetricCard title="Total Patients" value={metrics?.totalPatients || 0} icon="👨‍🦳" color="var(--terracotta-500)" loading={loading} />
             <MetricCard title="Active Caregivers" value={metrics?.totalCaregivers || 0} icon="👩‍⚕️" color="var(--sage-600)" loading={loading} />
             <MetricCard title="Total Volume" value={metrics?.totalBookings || 0} icon="📊" color="var(--primary)" loading={loading} />
             <MetricCard title="Est. Revenue" value={`$${metrics?.totalRevenue?.toLocaleString() || 0}`} icon="💰" color="var(--brown-600)" loading={loading} />
+          </div>
+
+          {/* Advanced Analytics Grid */}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 'var(--space-6)', marginBottom: 'var(--space-10)' }}>
+            <MetricCard title="Satisfaction" value={`${metrics?.avgSatisfaction || 0}/5`} icon="⭐" color="#f59e0b" loading={loading} />
+            <MetricCard title="Completion Rate" value={`${metrics?.completionRate || 0}%`} icon="✅" color="#10b981" loading={loading} />
+            <MetricCard title="Avg Response" value={`${metrics?.avgResponseTime || 0}m`} icon="⏱️" color="#3b82f6" loading={loading} />
+            <MetricCard title="Active Users" value={metrics?.activeUsers || 0} icon="🔥" color="#ef4444" loading={loading} />
           </div>
 
           {/* Mission Control Split View */}
@@ -114,28 +122,47 @@ export default function AdminDashboardContent() {
               </div>
 
               {/* Quick Actions */}
-              <div style={{ 
-                background: 'linear-gradient(135deg, var(--secondary), var(--sage-700))', color: 'white',
-                borderRadius: 'var(--radius-xl)', padding: 'var(--space-8)', boxShadow: 'var(--shadow-lg)',
-                position: 'relative', overflow: 'hidden'
-              }}>
-                <div style={{ position: 'relative', zIndex: 1, display: 'flex', flexDirection: 'column', gap: 'var(--space-4)', maxWidth: 500 }}>
-                  <span className="badge" style={{ background: 'rgba(255,255,255,0.2)', color: 'white', alignSelf: 'flex-start' }}>Action Gateway</span>
-                  <h2 style={{ fontSize: '2rem', margin: 0, fontFamily: 'var(--font-serif)' }}>Vetting Control</h2>
-                  <p style={{ opacity: 0.9, lineHeight: 1.6 }}>
-                    Authorize professional caregiver credentials to maintain system integrity.
-                  </p>
-                  <div style={{ marginTop: 'var(--space-2)' }}>
-                    <Link href="/dashboard/admin/vetting" style={{ 
-                      background: 'white', color: 'var(--secondary)', padding: '12px 32px', 
-                      borderRadius: 'var(--radius-full)', fontWeight: 700, textDecoration: 'none',
-                      display: 'inline-block', transition: 'var(--transition)'
-                    }}>
-                      Manage Vetting →
-                    </Link>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'var(--space-4)' }}>
+                <div style={{ 
+                  background: 'linear-gradient(135deg, var(--secondary), var(--sage-700))', color: 'white',
+                  borderRadius: 'var(--radius-xl)', padding: 'var(--space-6)', boxShadow: 'var(--shadow-lg)',
+                  position: 'relative', overflow: 'hidden'
+                }}>
+                  <div style={{ position: 'relative', zIndex: 1 }}>
+                    <h3 style={{ fontSize: '1.25rem', margin: '0 0 10px', fontFamily: 'var(--font-serif)' }}>Vetting</h3>
+                    <p style={{ opacity: 0.9, fontSize: '0.8rem', marginBottom: '15px' }}>Verify professional credentials.</p>
+                    <Link href="/dashboard/admin/vetting" style={{ background: 'white', color: 'var(--secondary)', padding: '8px 20px', borderRadius: 'var(--radius-full)', fontWeight: 700, textDecoration: 'none', fontSize: '0.8rem' }}>Manage →</Link>
                   </div>
+                  <div style={{ position: 'absolute', bottom: -10, right: -10, fontSize: '4rem', opacity: 0.1 }}>🛡️</div>
                 </div>
-                <div style={{ position: 'absolute', top: -50, right: -50, fontSize: '15rem', opacity: 0.1, transform: 'rotate(-15deg)' }}>🛡️</div>
+
+                <div style={{ 
+                  background: 'linear-gradient(135deg, var(--primary), var(--terracotta-700))', color: 'white',
+                  borderRadius: 'var(--radius-xl)', padding: 'var(--space-6)', boxShadow: 'var(--shadow-lg)',
+                  position: 'relative', overflow: 'hidden'
+                }}>
+                  <div style={{ position: 'relative', zIndex: 1 }}>
+                    <h3 style={{ fontSize: '1.25rem', margin: '0 0 10px', fontFamily: 'var(--font-serif)' }}>Users</h3>
+                    <p style={{ opacity: 0.9, fontSize: '0.8rem', marginBottom: '15px' }}>Manage platform accounts.</p>
+                    <Link href="/dashboard/admin/users" style={{ background: 'white', color: 'var(--primary)', padding: '8px 20px', borderRadius: 'var(--radius-full)', fontWeight: 700, textDecoration: 'none', fontSize: '0.8rem' }}>Manage →</Link>
+                  </div>
+                  <div style={{ position: 'absolute', bottom: -10, right: -10, fontSize: '4rem', opacity: 0.1 }}>👤</div>
+                </div>
+
+                <div style={{ 
+                  background: 'linear-gradient(135deg, var(--brown-600), var(--brown-800))', color: 'white',
+                  borderRadius: 'var(--radius-xl)', padding: 'var(--space-6)', boxShadow: 'var(--shadow-lg)',
+                  position: 'relative', overflow: 'hidden', gridColumn: 'span 2'
+                }}>
+                  <div style={{ position: 'relative', zIndex: 1, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <div>
+                      <h3 style={{ fontSize: '1.25rem', margin: '0 0 5px', fontFamily: 'var(--font-serif)' }}>Service Catalog</h3>
+                      <p style={{ opacity: 0.9, fontSize: '0.8rem', margin: 0 }}>Update pricing and service offerings.</p>
+                    </div>
+                    <Link href="/dashboard/admin/services" style={{ background: 'white', color: 'var(--brown-700)', padding: '8px 24px', borderRadius: 'var(--radius-full)', fontWeight: 700, textDecoration: 'none', fontSize: '0.8rem' }}>Manage Services →</Link>
+                  </div>
+                  <div style={{ position: 'absolute', top: -10, left: '40%', fontSize: '5rem', opacity: 0.05 }}>📋</div>
+                </div>
               </div>
             </div>
 

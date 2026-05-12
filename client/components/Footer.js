@@ -70,7 +70,11 @@ export default function Footer() {
         </div>
 
         <div style={{ borderTop:'1px solid rgba(255,255,255,0.1)', padding:'var(--space-6) 0', display:'flex', justifyContent:'space-between', alignItems:'center', flexWrap:'wrap', gap:'var(--space-3)' }}>
-          <p style={{ color:'var(--brown-400)', fontSize:'0.875rem' }}>© {year} CareNest Inc. All rights reserved.</p>
+          <p style={{ color:'var(--brown-400)', fontSize:'0.875rem' }}>
+            © {year} CareNest Inc. All rights reserved. 
+            <span style={{ marginLeft: 'var(--space-4)', opacity: 0.6 }}>|</span>
+            <span style={{ marginLeft: 'var(--space-4)' }}>In collaboration with <strong>Unified Mentor</strong></span>
+          </p>
           <div style={{ display:'flex', gap:'var(--space-2)' }}>
             <span className="badge-warm badge" style={{ background:'rgba(196,105,78,0.15)', color:'var(--terracotta-200)' }}>🔒 HIPAA Compliant</span>
             <span className="badge-warm badge" style={{ background:'rgba(196,105,78,0.15)', color:'var(--terracotta-200)' }}>✓ Verified Caregivers</span>

@@ -73,7 +73,13 @@ export const api = {
     metrics: () => request('/admin/metrics'),
     pendingCaregivers: () => request('/admin/pending-caregivers'),
     verifyCaregiver: (id) => request(`/admin/verify-caregiver/${id}`, { method: 'PATCH' }),
-    rejectCaregiver: (id) => request(`/admin/reject-caregiver/${id}`, { method: 'DELETE' })
+    rejectCaregiver: (id) => request(`/admin/reject-caregiver/${id}`, { method: 'DELETE' }),
+    // User Management
+    users: (role) => request(`/admin/users${role ? `?role=${role}` : ''}`),
+    updateUserStatus: (id) => request(`/admin/users/${id}/status`, { method: 'PATCH' }),
+    // Service Management
+    services: () => request('/admin/services'),
+    upsertService: (body) => request('/admin/services', { method: 'POST', body: JSON.stringify(body) }),
   },
   payments: {
     createOrder: (bookingId) => request('/payments/create-order', { method: 'POST', body: JSON.stringify({ bookingId }) }),
