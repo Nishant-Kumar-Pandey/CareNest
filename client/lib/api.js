@@ -16,7 +16,13 @@ async function request(path, options = {}) {
   if (!res.ok) {
     if (res.status === 401 && typeof window !== 'undefined') {
       const msg = data.message?.toLowerCase() || '';
-      if (msg.includes('user not found') || msg.includes('authorized') || msg.includes('token')) {
+      const isAuthError = msg.includes('user not found') || 
+                         msg.includes('authorized') || 
+                         msg.includes('token') || 
+                         msg.includes('expired') || 
+                         msg.includes('invalid');
+
+      if (isAuthError) {
         localStorage.removeItem('token');
         localStorage.removeItem('user');
         if (!window.location.pathname.includes('/auth') && window.location.pathname !== '/') {
