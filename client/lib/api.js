@@ -98,5 +98,11 @@ export const api = {
     markRead: (id) => request(`/notifications/${id}/read`, { method: 'PATCH' }),
     markAllRead: () => request('/notifications/mark-all-read', { method: 'PATCH' }),
     delete: (id) => request(`/notifications/${id}`, { method: 'DELETE' }),
-  }
+  },
+  medications: {
+    list: () => request('/medications'),
+    create: (data) => request('/medications', { method: 'POST', body: JSON.stringify(data) }),
+    update: (id, data) => request(`/medications/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+    delete: (id) => request(`/medications/${id}`, { method: 'DELETE' }),
+  },
 };

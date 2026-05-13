@@ -264,9 +264,14 @@ export default function PatientDashboardContent() {
             <h1 style={{ fontFamily: 'var(--font-serif)', color: 'var(--text-primary)', marginBottom: 'var(--space-2)' }}>Patient Dashboard</h1>
             <p style={{ color: 'var(--text-secondary)', margin: 0 }}>Manage your care requests, upcoming sessions, and review caregivers.</p>
           </div>
-          <button onClick={() => router.push('/dashboard/patient/setup')} className="btn btn-outline" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <span>Edit Care Profile ⚙</span>
-          </button>
+          <div style={{ display: 'flex', gap: '12px' }}>
+            <button onClick={() => router.push('/dashboard/patient/medications')} className="btn btn-outline" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <span>Meds 💊</span>
+            </button>
+            <button onClick={() => router.push('/dashboard/patient/setup')} className="btn btn-outline" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <span>Edit Care Profile ⚙</span>
+            </button>
+          </div>
         </div>
 
       {/* TABS */}

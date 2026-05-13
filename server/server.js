@@ -60,6 +60,7 @@ app.use('/api/reviews', require('./routes/reviews'));
 app.use('/api/payments', require('./routes/payments'));
 app.use('/api/chat', require('./routes/chatRoutes'));
 app.use('/api/notifications', require('./routes/notificationRoutes'));
+app.use('/api/medications', require('./routes/medications'));
 
 // Health check
 app.get('/api/health', (req, res) =>
